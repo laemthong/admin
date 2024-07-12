@@ -33,6 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
+<<<<<<< HEAD
         // Check for duplicate activity_name
         $sql = "SELECT * FROM activity WHERE activity_name='$activity_name'";
         $result = $conn->query($sql);
@@ -52,6 +53,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
+=======
+        // Generate new activity_id
+        $activity_id = getNextActivityId($conn);
+
+        // Insert new record
+        $sql = "INSERT INTO activity (activity_id, activity_name, activity_date, location_id, sport_id) 
+                VALUES ('$activity_id', '$activity_name', '$activity_date', '$location_id', '$sport_id')";
+        if ($conn->query($sql) === TRUE) {
+            $message = "New activity created successfully";
+        } else {
+            $error = "Error: " . $sql . "<br>" . $conn->error;
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         }
     }
 }
@@ -61,8 +74,11 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM activity WHERE activity_id='$activity_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "Activity deleted successfully";
+<<<<<<< HEAD
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
+=======
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -188,12 +204,22 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
+<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
+=======
+    <a href="location.php">Location Management</a>
+    <a href="activity.php">Activity Management</a>
+    <a href="sport_type.php">Sport Type Management</a>
+    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
+    <a href="member_in_activity.php">Member in Activity Management</a>
+    <a href="hashtag.php">Hashtag Management</a>
+    <!-- Add more links as needed -->
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
 </div>
 
 <div class="container">
@@ -210,7 +236,11 @@ if (isset($_GET['delete'])) {
         </div>
         <div class="form-group">
             <label for="activity_date">Activity Date:</label>
+<<<<<<< HEAD
             <input type="text" id="activity_date" name="activity_date" placeholder="" required>
+=======
+            <input type="datetime-local" id="activity_date" name="activity_date" required>
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         </div>
         <div class="form-group">
             <label for="location_id">Location:</label>
@@ -220,7 +250,11 @@ if (isset($_GET['delete'])) {
                 $sql = "SELECT location_id, location_name FROM location";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
+<<<<<<< HEAD
                     echo "<option value='" . $row['location_id'] . "'>" . $row['location_name'] . "</option>";
+=======
+                    echo "<option value='".$row['location_id']."'>".$row['location_name']."</option>";
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 }
                 ?>
             </select>
@@ -233,7 +267,11 @@ if (isset($_GET['delete'])) {
                 $sql = "SELECT sport_id, sport_name FROM sport";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
+<<<<<<< HEAD
                     echo "<option value='" . $row['sport_id'] . "'>" . $row['sport_name'] . "</option>";
+=======
+                    echo "<option value='".$row['sport_id']."'>".$row['sport_name']."</option>";
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 }
                 ?>
             </select>
@@ -244,9 +282,16 @@ if (isset($_GET['delete'])) {
     <h2>Activity List</h2>
 
     <?php
+<<<<<<< HEAD
     $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name FROM activity a
             JOIN location l ON a.location_id = l.location_id
             JOIN sport s ON a.sport_id = s.sport_id";
+=======
+    $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, a.location_id, a.sport_id
+            FROM activity a
+            LEFT JOIN location l ON a.location_id = l.location_id
+            LEFT JOIN sport s ON a.sport_id = s.sport_id";
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -254,7 +299,11 @@ if (isset($_GET['delete'])) {
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["activity_id"]."</td><td>".$row["activity_name"]."</td><td>".$row["activity_date"]."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td>
             <td>
+<<<<<<< HEAD
                 <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_name"]."\", \"".$row["sport_name"]."\")'>Edit</button>
+=======
+                <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\")'>Edit</button>
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 <a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>Delete</a>
             </td></tr>";
         }

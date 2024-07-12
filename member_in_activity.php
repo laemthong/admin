@@ -22,6 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $activity_id = $_POST["activity_id"] ?? '';
     $user_id = $_POST["user_id"] ?? '';
 
+<<<<<<< HEAD
     if (!empty($member_id)) {
         // Update existing record
         $sql = "UPDATE member_in_activity SET activity_id='$activity_id', user_id='$user_id' WHERE member_id='$member_id'";
@@ -36,6 +37,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             $error = "ข้อมูลซ้ำกรุณาเลือกข้อมูลใหม่";
+=======
+    // Check if activity_id exists
+    $activity_check_sql = "SELECT activity_id FROM activity WHERE activity_id='$activity_id'";
+    $activity_check_result = $conn->query($activity_check_sql);
+
+    // Check if user_id exists
+    $user_check_sql = "SELECT user_id FROM user_information WHERE user_id='$user_id'";
+    $user_check_result = $conn->query($user_check_sql);
+
+    if ($activity_check_result->num_rows > 0 && $user_check_result->num_rows > 0) {
+        if (!empty($member_id)) {
+            // Update existing record
+            $sql = "UPDATE member_in_activity SET activity_id='$activity_id', user_id='$user_id' WHERE member_id='$member_id'";
+            if ($conn->query($sql) === TRUE) {
+                $message = "Record updated successfully";
+            } else {
+                $error = "Error: " . $sql . "<br>" . $conn->error;
+            }
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         } else {
             // Generate new member_id
             $member_id = getNextMemberId($conn);
@@ -45,12 +65,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     VALUES ('$member_id', '$activity_id', '$user_id')";
             if ($conn->query($sql) === TRUE) {
                 $message = "New member in activity created successfully";
+<<<<<<< HEAD
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
+=======
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
         }
+<<<<<<< HEAD
+=======
+    } else {
+        if ($activity_check_result->num_rows == 0) {
+            $error .= "Error: Invalid activity_id.<br>";
+        }
+        if ($user_check_result->num_rows == 0) {
+            $error .= "Error: Invalid user_id.<br>";
+        }
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     }
 }
 
@@ -59,8 +92,11 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM member_in_activity WHERE member_id='$member_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "Member in activity deleted successfully";
+<<<<<<< HEAD
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
+=======
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -186,12 +222,22 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
+<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
+=======
+    <a href="location.php">Location Management</a>
+    <a href="activity.php">Activity Management</a>
+    <a href="sport_type.php">Sport Type Management</a>
+    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
+    <a href="member_in_activity.php">Member in Activity Management</a>
+    <a href="hashtag.php">Hashtag Management</a>
+    <!-- Add more links as needed -->
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
 </div>
 
 <div class="container">
@@ -203,6 +249,7 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="member_in_activity.php">
         <input type="hidden" id="member_id" name="member_id">
         <div class="form-group">
+<<<<<<< HEAD
             <label for="activity_id">Activity:</label>
             <select id="activity_id" name="activity_id" required>
                 <option value="">Select Activity</option>
@@ -211,11 +258,22 @@ if (isset($_GET['delete'])) {
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
                     echo "<option value='" . $row['activity_id'] . "'>" . $row['activity_id'] . "</option>";
+=======
+            <label for="activity_id">Activity ID:</label>
+            <select id="activity_id" name="activity_id" required>
+                <option value="">Select Activity ID</option>
+                <?php
+                $sql = "SELECT activity_id FROM activity";
+                $result = $conn->query($sql);
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='".$row['activity_id']."'>".$row['activity_id']."</option>";
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 }
                 ?>
             </select>
         </div>
         <div class="form-group">
+<<<<<<< HEAD
             <label for="user_id">User:</label>
             <select id="user_id" name="user_id" required>
                 <option value="">Select User</option>
@@ -224,6 +282,16 @@ if (isset($_GET['delete'])) {
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
                     echo "<option value='" . $row['user_id'] . "'>" . $row['user_id'] . "</option>";
+=======
+            <label for="user_id">User ID:</label>
+            <select id="user_id" name="user_id" required>
+                <option value="">Select User ID</option>
+                <?php
+                $sql = "SELECT user_id FROM user_information";
+                $result = $conn->query($sql);
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='".$row['user_id']."'>".$row['user_id']."</option>";
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 }
                 ?>
             </select>
@@ -234,6 +302,7 @@ if (isset($_GET['delete'])) {
     <h2>Member in Activity List</h2>
 
     <?php
+<<<<<<< HEAD
     $sql = "SELECT m.member_id, a.activity_name, u.user_name 
             FROM member_in_activity m
             JOIN activity a ON m.activity_id = a.activity_id
@@ -246,6 +315,20 @@ if (isset($_GET['delete'])) {
             echo "<tr><td>".$row["member_id"]."</td><td>".$row["activity_name"]."</td><td>".$row["user_name"]."</td>
             <td>
                 <button class='btn btn-edit' onclick='editMemberInActivity(\"".$row["member_id"]."\", \"".$row["activity_name"]."\", \"".$row["user_name"]."\")'>Edit</button>
+=======
+    $sql = "SELECT mia.member_id, mia.activity_id, mia.user_id 
+            FROM member_in_activity mia
+            LEFT JOIN activity a ON mia.activity_id = a.activity_id
+            LEFT JOIN user_information u ON mia.user_id = u.user_id";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        echo "<table><tr><th>Member ID</th><th>Activity ID</th><th>User ID</th><th>Actions</th></tr>";
+        while($row = $result->fetch_assoc()) {
+            echo "<tr><td>".$row["member_id"]."</td><td>".$row["activity_id"]."</td><td>".$row["user_id"]."</td>
+            <td>
+                <button class='btn btn-edit' onclick='editMemberInActivity(\"".$row["member_id"]."\", \"".$row["activity_id"]."\", \"".$row["user_id"]."\")'>Edit</button>
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 <a class='btn btn-delete' href='member_in_activity.php?delete=".$row["member_id"]."'>Delete</a>
             </td></tr>";
         }

@@ -30,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
+<<<<<<< HEAD
         // Check for duplicate sport_name
         $sql = "SELECT * FROM sport WHERE sport_name='$sport_name'";
         $result = $conn->query($sql);
@@ -48,6 +49,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
+=======
+        // Generate new sport_id
+        $sport_id = getNextSportId($conn);
+
+        // Insert new record
+        $sql = "INSERT INTO sport (sport_id, sport_name) VALUES ('$sport_id', '$sport_name')";
+        if ($conn->query($sql) === TRUE) {
+            $message = "New sport created successfully";
+        } else {
+            $error = "Error: " . $sql . "<br>" . $conn->error;
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         }
     }
 }
@@ -57,8 +69,11 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM sport WHERE sport_id='$sport_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "Sport deleted successfully";
+<<<<<<< HEAD
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
+=======
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -119,7 +134,11 @@ if (isset($_GET['delete'])) {
             display: block;
             margin-bottom: 5px;
         }
+<<<<<<< HEAD
         .form-group input, .form-group select {
+=======
+        .form-group input {
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
             width: 100%;
             padding: 10px;
             box-sizing: border-box;
@@ -184,12 +203,22 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
+<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
+=======
+    <a href="location.php">Location Management</a>
+    <a href="activity.php">Activity Management</a>
+    <a href="sport_type.php">Sport Type Management</a>
+    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
+    <a href="member_in_activity.php">Member in Activity Management</a>
+    <a href="hashtag.php">Hashtag Management</a>
+    <!-- Add more links as needed -->
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
 </div>
 
 <div class="container">
@@ -214,7 +243,11 @@ if (isset($_GET['delete'])) {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
+<<<<<<< HEAD
         echo "<table><tr><th>Sport ID</th><th>Name</th><th>Actions</th></tr>";
+=======
+        echo "<table><tr><th>Sport ID</th><th>Sport Name</th><th>Actions</th></tr>";
+>>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["sport_id"]."</td><td>".$row["sport_name"]."</td>
             <td>
