@@ -222,6 +222,7 @@ if (isset($_GET['delete'])) {
     <a href="activity.php">Activity Management</a>
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
+    <a href="profile.php">Profile Management</a>
 </div>
 
 <div class="container">
