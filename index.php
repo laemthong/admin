@@ -36,7 +36,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn->query($sql);
             }
         } else {
-<<<<<<< HEAD
         
             // Check for duplicate user_id
             $sql = "SELECT * FROM user_information WHERE user_id='$user_id'";
@@ -45,14 +44,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 throw new Exception("ข้อมูลซ้ำกรุณากรอกใหม่");
             }
 
-=======
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
             // Insert user
             $sql = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_age, user_photo, user_token)
                     VALUES ('$user_id', '$user_email', '$user_pass', '$user_name', '$user_age', '$user_photo', '$user_token')";
             $conn->query($sql);
         }
-<<<<<<< HEAD
         
 
         $conn->commit();
@@ -62,14 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } catch (Exception $e) {
         $conn->rollback();
         $error = " " . $e->getMessage();
-=======
-
-        $conn->commit();
-        $message = "Record saved successfully";
-    } catch (Exception $e) {
-        $conn->rollback();
-        $error = "Error: " . $e->getMessage();
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     }
 }
 
@@ -90,11 +78,8 @@ if (isset($_GET['delete'])) {
 
         $conn->commit();
         $message = "Record deleted successfully";
-<<<<<<< HEAD
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-=======
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } catch (Exception $e) {
         $conn->rollback();
         $error = "Error: " . $e->getMessage();
@@ -231,17 +216,10 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
-<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
-=======
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
 </div>

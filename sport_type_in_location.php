@@ -31,7 +31,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
-<<<<<<< HEAD
         // Check for duplicate location_id and type_id
         $sql = "SELECT * FROM sport_type_in_location WHERE location_id='$location_id' AND type_id='$type_id'";
         $result = $conn->query($sql);
@@ -51,18 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
-=======
-        // Generate new type_in_location_id
-        $type_in_location_id = getNextTypeInLocationId($conn);
-
-        // Insert new record
-        $sql = "INSERT INTO sport_type_in_location (type_in_location_id, location_id, type_id) 
-                VALUES ('$type_in_location_id', '$location_id', '$type_id')";
-        if ($conn->query($sql) === TRUE) {
-            $message = "New sport type in location created successfully";
-        } else {
-            $error = "Error: " . $sql . "<br>" . $conn->error;
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         }
     }
 }
@@ -72,11 +59,8 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM sport_type_in_location WHERE type_in_location_id='$type_in_location_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "Sport type in location deleted successfully";
-<<<<<<< HEAD
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-=======
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -202,22 +186,12 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
-<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
-=======
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <!-- Add more links as needed -->
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
 </div>
 
 <div class="container">
@@ -236,11 +210,7 @@ if (isset($_GET['delete'])) {
                 $sql = "SELECT location_id, location_name FROM location";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
-<<<<<<< HEAD
                     echo "<option value='" . $row['location_id'] . "'>" . $row['location_name'] . "</option>";
-=======
-                    echo "<option value='".$row['location_id']."'>".$row['location_name']."</option>";
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 }
                 ?>
             </select>
@@ -253,11 +223,7 @@ if (isset($_GET['delete'])) {
                 $sql = "SELECT type_id, type_name FROM sport_type";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
-<<<<<<< HEAD
                     echo "<option value='" . $row['type_id'] . "'>" . $row['type_name'] . "</option>";
-=======
-                    echo "<option value='".$row['type_id']."'>".$row['type_name']."</option>";
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 }
                 ?>
             </select>
@@ -268,7 +234,6 @@ if (isset($_GET['delete'])) {
     <h2>Sport Type in Location List</h2>
 
     <?php
-<<<<<<< HEAD
     $sql = "SELECT s.type_in_location_id, l.location_name, t.type_name 
             FROM sport_type_in_location s
             JOIN location l ON s.location_id = l.location_id
@@ -281,20 +246,6 @@ if (isset($_GET['delete'])) {
             echo "<tr><td>".$row["type_in_location_id"]."</td><td>".$row["location_name"]."</td><td>".$row["type_name"]."</td>
             <td>
                 <button class='btn btn-edit' onclick='editTypeInLocation(\"".$row["type_in_location_id"]."\", \"".$row["location_name"]."\", \"".$row["type_name"]."\")'>Edit</button>
-=======
-    $sql = "SELECT stl.type_in_location_id, l.location_name, st.type_name, stl.location_id, stl.type_id
-            FROM sport_type_in_location stl
-            LEFT JOIN location l ON stl.location_id = l.location_id
-            LEFT JOIN sport_type st ON stl.type_id = st.type_id";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        echo "<table><tr><th>Type in Location ID</th><th>Location Name</th><th>Sport Type</th><th>Actions</th></tr>";
-        while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["type_in_location_id"]."</td><td>".$row["location_name"]."</td><td>".$row["type_name"]."</td>
-            <td>
-                <button class='btn btn-edit' onclick='editTypeInLocation(\"".$row["type_in_location_id"]."\", \"".$row["location_id"]."\", \"".$row["type_id"]."\")'>Edit</button>
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
                 <a class='btn btn-delete' href='sport_type_in_location.php?delete=".$row["type_in_location_id"]."'>Delete</a>
             </td></tr>";
         }

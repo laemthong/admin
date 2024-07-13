@@ -34,7 +34,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
-<<<<<<< HEAD
         // Check for duplicate location_name
         $sql = "SELECT * FROM location WHERE location_name='$location_name'";
         $result = $conn->query($sql);
@@ -54,18 +53,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $error = "Error: " . $sql . "<br>" . $conn->error;
             }
-=======
-        // Generate new location_id
-        $location_id = getNextLocationId($conn);
-
-        // Insert new record
-        $sql = "INSERT INTO location (location_id, location_name, location_time, location_photo, location_rules, location_map) 
-                VALUES ('$location_id', '$location_name', '$location_time', '$location_photo', '$location_rules', '$location_map')";
-        if ($conn->query($sql) === TRUE) {
-            $message = "New location created successfully";
-        } else {
-            $error = "Error: " . $sql . "<br>" . $conn->error;
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         }
     }
 }
@@ -75,11 +62,8 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM location WHERE location_id='$location_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "Location deleted successfully";
-<<<<<<< HEAD
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-=======
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -205,22 +189,12 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
-<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
-=======
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <!-- Add more links as needed -->
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
 </div>
 
 <div class="container">
@@ -237,11 +211,7 @@ if (isset($_GET['delete'])) {
         </div>
         <div class="form-group">
             <label for="location_time">Location Time:</label>
-<<<<<<< HEAD
             <input type="text" id="location_time" name="location_time" required>
-=======
-            <input type="datetime-local" id="location_time" name="location_time" required>
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         </div>
         <div class="form-group">
             <label for="location_photo">Location Photo:</label>

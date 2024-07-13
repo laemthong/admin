@@ -4,7 +4,6 @@ include 'config.php';
 $message = '';
 $error = '';
 
-<<<<<<< HEAD
 // Function to generate the next hashtag_id
 function getNextHashtagId($conn) {
     $sql = "SELECT hashtag_id FROM hashtag ORDER BY hashtag_id DESC LIMIT 1";
@@ -60,42 +59,6 @@ if (isset($_GET['delete'])) {
         $message = "Hashtag deleted successfully";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-=======
-// Insert or Update hashtag
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $hashtag_message = $_POST['hashtag_message'];
-
-    // Get the latest hashtag_id and increment it
-    $sql = "SELECT hashtag_id FROM hashtag ORDER BY hashtag_id DESC LIMIT 1";
-    $result = $conn->query($sql);
-    $new_id = 'H001';
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $last_id = $row['hashtag_id'];
-        $num = (int)substr($last_id, 1) + 1;
-        $new_id = 'H' . str_pad($num, 3, '0', STR_PAD_LEFT);
-    }
-
-    // Insert new hashtag
-    $sql = "INSERT INTO hashtag (hashtag_id, hashtag_message) VALUES ('$new_id', '$hashtag_message')";
-
-    if ($conn->query($sql) === TRUE) {
-        $message = "Record saved successfully";
-    } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
-    }
-}
-
-// Delete hashtag
-if (isset($_GET['delete'])) {
-    $hashtag_id = $_GET['delete'];
-
-    $sql = "DELETE FROM hashtag WHERE hashtag_id='$hashtag_id'";
-
-    if ($conn->query($sql) === TRUE) {
-        $message = "Record deleted successfully";
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -221,17 +184,10 @@ if (isset($_GET['delete'])) {
     <h2>Menu</h2>
     <a href="index.php">User Management</a>
     <a href="sport.php">Sport Management</a>
-<<<<<<< HEAD
     <a href="sport_type_in_location.php">Sport Type in Location Management</a>
     <a href="sport_type.php">Sport Type Management</a>
     <a href="location.php">Location Management</a>
     <a href="activity.php">Activity Management</a>
-=======
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
     <a href="member_in_activity.php">Member in Activity Management</a>
     <a href="hashtag.php">Hashtag Management</a>
 </div>
@@ -239,20 +195,11 @@ if (isset($_GET['delete'])) {
 <div class="container">
     <h2>Hashtag Management</h2>
 
-<<<<<<< HEAD
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
 
     <form method="POST" action="hashtag.php">
         <input type="hidden" id="hashtag_id" name="hashtag_id">
-=======
-    <?php
-    if ($message) { echo "<div class='message'>$message</div>"; }
-    if ($error) { echo "<div class='error'>$error</div>"; }
-    ?>
-
-    <form method="POST" action="hashtag.php">
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
         <div class="form-group">
             <label for="hashtag_message">Hashtag Message:</label>
             <input type="text" id="hashtag_message" name="hashtag_message" required>
@@ -267,20 +214,12 @@ if (isset($_GET['delete'])) {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-<<<<<<< HEAD
         echo "<table><tr><th>Hashtag ID</th><th>Message</th><th>Actions</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["hashtag_id"]."</td><td>".$row["hashtag_message"]."</td>
             <td>
                 <button class='btn btn-edit' onclick='editHashtag(\"".$row["hashtag_id"]."\", \"".$row["hashtag_message"]."\")'>Edit</button>
                 <a class='btn btn-delete' href='hashtag.php?delete=".$row["hashtag_id"]."'>Delete</a>
-=======
-        echo "<table><tr><th>Hashtag ID</th><th>Hashtag Message</th><th>Actions</th></tr>";
-        while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["hashtag_id"]."</td><td>".$row["hashtag_message"]."</td>
-            <td>
-                <a class='btn btn-delete' href='?delete=".$row["hashtag_id"]."'>Delete</a>
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
             </td></tr>";
         }
         echo "</table>";
@@ -290,7 +229,6 @@ if (isset($_GET['delete'])) {
     $conn->close();
     ?>
 
-<<<<<<< HEAD
     <script>
     function editHashtag(hashtag_id, hashtag_message) {
         document.getElementById('hashtag_id').value = hashtag_id;
@@ -298,8 +236,6 @@ if (isset($_GET['delete'])) {
     }
     </script>
 
-=======
->>>>>>> 13a8a9b5c8e16d2c1f7a1ae0e655c881bcb89f45
 </div>
 
 </body>
