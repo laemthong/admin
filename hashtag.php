@@ -70,7 +70,7 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hashtag Management</title>
+    <title>ข้อมูลแฮชเเท็ก</title>
     <style>
         body {
             display: flex;
@@ -181,20 +181,21 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="sidebar">
-    <h2>Menu</h2>
-    <a href="index.php">User Management</a>
-    <a href="sport.php">Sport Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <a href="profile.php">Profile Management</a>
+<h2>เมนู</h2>
+    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+    <a href="sport.php">ข้อมูลกีฬา</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
+    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="activity.php">ข้อมูลกิจกรรม</a>
+    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    <a href="approve.php">อนุมัติสถานที่</a>
 </div>
 
 <div class="container">
-    <h2>Hashtag Management</h2>
+    <h2>ข้อมูลแฮชเเท็ก</h2>
 
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
@@ -202,25 +203,25 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="hashtag.php">
         <input type="hidden" id="hashtag_id" name="hashtag_id">
         <div class="form-group">
-            <label for="hashtag_message">Hashtag Message:</label>
+            <label for="hashtag_message">ข้อความแฮชเเท็ก:</label>
             <input type="text" id="hashtag_message" name="hashtag_message" required>
         </div>
-        <button type="submit" class="btn-submit">Save</button>
+        <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
-    <h2>Hashtag List</h2>
+    <h2>รายการ</h2>
 
     <?php
     $sql = "SELECT hashtag_id, hashtag_message FROM hashtag";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>Hashtag ID</th><th>Message</th><th>Actions</th></tr>";
+        echo "<table><tr><th>รหัสแฮชเเท็ก</th><th>ข้อความ</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["hashtag_id"]."</td><td>".$row["hashtag_message"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editHashtag(\"".$row["hashtag_id"]."\", \"".$row["hashtag_message"]."\")'>Edit</button>
-                <a class='btn btn-delete' href='hashtag.php?delete=".$row["hashtag_id"]."'>Delete</a>
+                <button class='btn btn-edit' onclick='editHashtag(\"".$row["hashtag_id"]."\", \"".$row["hashtag_message"]."\")'>แก้ไข</button>
+                <a class='btn btn-delete' href='hashtag.php?delete=".$row["hashtag_id"]."'>ลบ</a>
             </td></tr>";
         }
         echo "</table>";

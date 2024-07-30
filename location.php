@@ -22,21 +22,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_name = $_POST["location_name"] ?? '';
     $location_time = $_POST["location_time"] ?? '';
     $location_photo = $_POST["location_photo"] ?? '';
-    $location_rules = $_POST["location_rules"] ?? '';
     $location_map = $_POST["location_map"] ?? '';
+    $type_id = $_POST["type_id"] ?? '';
 
     if (!empty($location_id)) {
         // Update existing record
-        $sql = "UPDATE location SET location_name='$location_name', location_time='$location_time', location_photo='$location_photo', location_rules='$location_rules', location_map='$location_map' WHERE location_id='$location_id'";
-        if ($conn->query($sql) === TRUE) {
-            $message = "Record updated successfully";
+        $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, location_map=?, type_id=? WHERE location_id=?");
+        $stmt->bind_param("ssssss", $location_name, $location_time, $location_photo, $location_map, $type_id, $location_id);
+
+        if ($stmt->execute()) {
+            $message = "อัปเดตข้อมูลสำเร็จ";
         } else {
-            $error = "Error: " . $sql . "<br>" . $conn->error;
+            $error = "Error: " . $stmt->error;
         }
+        $stmt->close();
     } else {
         // Check for duplicate location_name
-        $sql = "SELECT * FROM location WHERE location_name='$location_name'";
-        $result = $conn->query($sql);
+        $stmt = $conn->prepare("SELECT * FROM location WHERE location_name=?");
+        $stmt->bind_param("s", $location_name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
         if ($result->num_rows > 0) {
             $error = "ข้อมูลซ้ำกรุณากรอกใหม่";
         } else {
@@ -44,34 +50,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $location_id = getNextLocationId($conn);
 
             // Insert new record
-            $sql = "INSERT INTO location (location_id, location_name, location_time, location_photo, location_rules, location_map) 
-                    VALUES ('$location_id', '$location_name', '$location_time', '$location_photo', '$location_rules', '$location_map')";
-            if ($conn->query($sql) === TRUE) {
-                $message = "New location created successfully";
+            $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, location_map, type_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
+            $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_id);
+
+            if ($stmt->execute()) {
+                $message = "สร้างข้อมูลใหม่สำเร็จ";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } else {
-                $error = "Error: " . $sql . "<br>" . $conn->error;
+                $error = "Error: " . $stmt->error;
             }
         }
+        $stmt->close();
     }
 }
 
 if (isset($_GET['delete'])) {
     $location_id = $_GET['delete'];
-    $sql = "DELETE FROM location WHERE location_id='$location_id'";
-    if ($conn->query($sql) === TRUE) {
-        $message = "Location deleted successfully";
+    $stmt = $conn->prepare("DELETE FROM location WHERE location_id=?");
+    $stmt->bind_param("s", $location_id);
+
+    if ($stmt->execute()) {
+        $message = "ลบข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
+        $error = "Error: " . $stmt->error;
     }
+    $stmt->close();
 }
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -186,79 +196,92 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="sidebar">
-    <h2>Menu</h2>
-    <a href="index.php">User Management</a>
-    <a href="sport.php">Sport Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <a href="profile.php">Profile Management</a>
+<h2>เมนู</h2>
+    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+    <a href="sport.php">ข้อมูลกีฬา</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
+    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="activity.php">ข้อมูลกิจกรรม</a>
+    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    <a href="approve.php">อนุมัติสถานที่</a>
 </div>
 
 <div class="container">
-    <h2>Location Management</h2>
+    <h2>ข้อมูลสถานที่เล่นกีฬา</h2>
 
-    <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
-    <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
+    <?php if ($message) { echo "<div class='message'>".htmlspecialchars($message)."</div>"; } ?>
+    <?php if ($error) { echo "<div class='error'>".htmlspecialchars($error)."</div>"; } ?>
 
     <form method="POST" action="location.php">
         <input type="hidden" id="location_id" name="location_id">
         <div class="form-group">
-            <label for="location_name">Location Name:</label>
+            <label for="location_name">ชื่อสถานที่:</label>
             <input type="text" id="location_name" name="location_name" required>
         </div>
         <div class="form-group">
-            <label for="location_time">Location Time:</label>
+            <label for="location_time">เวลาเปิด - ปิด:</label>
             <input type="text" id="location_time" name="location_time" required>
         </div>
         <div class="form-group">
-            <label for="location_photo">Location Photo:</label>
+            <label for="location_photo">รูปภาพ:</label>
             <input type="text" id="location_photo" name="location_photo" required>
         </div>
         <div class="form-group">
-            <label for="location_rules">Location Rules:</label>
-            <input type="text" id="location_rules" name="location_rules" required>
-        </div>
-        <div class="form-group">
-            <label for="location_map">Location Map:</label>
+            <label for="location_map">ตำแหน่ง:</label>
             <input type="text" id="location_map" name="location_map" required>
         </div>
-        <button type="submit" class="btn-submit">Save</button>
+        <div class="form-group">
+            <label for="type_id">ประเภทกีฬา:</label>
+            <select id="type_id" name="type_id" required>
+                <option value="">กรุณาเลือกประเภทกีฬา</option>
+                <?php
+                $sql = "SELECT type_id, type_name FROM sport_type";
+                $result = $conn->query($sql);
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='" . htmlspecialchars($row['type_id']) . "'>" . htmlspecialchars($row['type_name']) . "</option>";
+                }
+                ?>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
-    <h2>Location List</h2>
+    <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT location_id, location_name, location_time, location_photo, location_rules, location_map FROM location";
+    $sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.location_map, l.type_id, s.type_name 
+            FROM location l 
+            JOIN sport_type s ON l.type_id = s.type_id
+            WHERE l.status = 'approved'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>Location ID</th><th>Name</th><th>Time</th><th>Photo</th><th>Rules</th><th>Map</th><th>Actions</th></tr>";
+        echo "<table><tr><th>รหัสสถานที่เล่นกีฬา</th><th>ชื่อ</th><th>เวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ตำแหน่ง</th><th>ประเภทกีฬา</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["location_id"]."</td><td>".$row["location_name"]."</td><td>".$row["location_time"]."</td><td>".$row["location_photo"]."</td><td>".$row["location_rules"]."</td><td>".$row["location_map"]."</td>
+            echo "<tr><td>".htmlspecialchars($row["location_id"])."</td><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td>".htmlspecialchars($row["location_photo"])."</td><td>".htmlspecialchars($row["location_map"])."</td><td>".htmlspecialchars($row["type_name"])."</td>
             <td>
-                <button class='btn btn-edit' onclick='editLocation(\"".$row["location_id"]."\", \"".$row["location_name"]."\", \"".$row["location_time"]."\", \"".$row["location_photo"]."\", \"".$row["location_rules"]."\", \"".$row["location_map"]."\")'>Edit</button>
-                <a class='btn btn-delete' href='location.php?delete=".$row["location_id"]."'>Delete</a>
+                <button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["location_map"])."\", \"".htmlspecialchars($row["type_id"])."\")'>แก้ไข</button>
+                <a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>
             </td></tr>";
         }
         echo "</table>";
     } else {
-        echo "0 results";
+        echo "ไม่มีข้อมูล";
     }
     $conn->close();
     ?>
 
     <script>
-    function editLocation(location_id, location_name, location_time, location_photo, location_rules, location_map) {
+    function editLocation(location_id, location_name, location_time, location_photo, location_map, type_id) {
         document.getElementById('location_id').value = location_id;
         document.getElementById('location_name').value = location_name;
         document.getElementById('location_time').value = location_time;
         document.getElementById('location_photo').value = location_photo;
-        document.getElementById('location_rules').value = location_rules;
         document.getElementById('location_map').value = location_map;
+        document.getElementById('type_id').value = type_id;
     }
     </script>
 

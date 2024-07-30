@@ -72,7 +72,7 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Management</title>
+    <title>ข้อมูลโปรไฟล์</title>
     <style>
         body {
             display: flex;
@@ -183,20 +183,21 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="sidebar">
-    <h2>Menu</h2>
-    <a href="index.php">User Management</a>
-    <a href="sport.php">Sport Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <a href="profile.php">Profile Management</a>
+<h2>เมนู</h2>
+    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+    <a href="sport.php">ข้อมูลกีฬา</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
+    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="activity.php">ข้อมูลกิจกรรม</a>
+    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    <a href="approve.php">อนุมัติสถานที่</a>
 </div>
 
 <div class="container">
-    <h2>Profile Management</h2>
+    <h2>ข้อมูลโปรไฟล์</h2>
 
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
@@ -204,33 +205,33 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="profile.php">
         <input type="hidden" id="pro_id" name="pro_id">
         <div class="form-group">
-            <label for="pro_name">Profile Name:</label>
+            <label for="pro_name">ชื่อ:</label>
             <input type="text" id="pro_name" name="pro_name" required>
         </div>
         <div class="form-group">
-            <label for="pro_username">Profile Username:</label>
+            <label for="pro_username">ชื่อผู้ใช้งาน:</label>
             <input type="text" id="pro_username" name="pro_username" required>
         </div>
         <div class="form-group">
-            <label for="pro_brief">Profile Brief:</label>
+            <label for="pro_brief">คำอธิบาย:</label>
             <input type="text" id="pro_brief" name="pro_brief">
         </div>
-        <button type="submit" class="btn-submit">Save</button>
+        <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
-    <h2>Profile List</h2>
+    <h2>รายการ</h2>
 
     <?php
     $sql = "SELECT pro_id, pro_name, pro_username, pro_brief FROM profile";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>Profile ID</th><th>Name</th><th>Username</th><th>Brief</th><th>Actions</th></tr>";
+        echo "<table><tr><th>รหัสโปรไฟล์</th><th>ชื่อ</th><th>ชื่อผู้ใช้งาน</th><th>คำอธิบาย</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["pro_id"]."</td><td>".$row["pro_name"]."</td><td>".$row["pro_username"]."</td><td>".$row["pro_brief"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editProfile(\"".$row["pro_id"]."\", \"".$row["pro_name"]."\", \"".$row["pro_username"]."\", \"".$row["pro_brief"]."\")'>Edit</button>
-                <a class='btn btn-delete' href='profile.php?delete=".$row["pro_id"]."'>Delete</a>
+                <button class='btn btn-edit' onclick='editProfile(\"".$row["pro_id"]."\", \"".$row["pro_name"]."\", \"".$row["pro_username"]."\", \"".$row["pro_brief"]."\")'>แก้ไข</button>
+                <a class='btn btn-delete' href='profile.php?delete=".$row["pro_id"]."'>ลบ</a>
             </td></tr>";
         }
         echo "</table>";

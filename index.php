@@ -92,7 +92,7 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
+    <title>ข้อมูลผู้ใช้งาน</title>
     <style>
         body {
             display: flex;
@@ -213,20 +213,21 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="sidebar">
-    <h2>Menu</h2>
-    <a href="index.php">User Management</a>
-    <a href="sport.php">Sport Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <a href="profile.php">Profile Management</a>
-</div>
+<h2>เมนู</h2>
+    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+    <a href="sport.php">ข้อมูลกีฬา</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
+    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="activity.php">ข้อมูลกิจกรรม</a>
+    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
 
 <div class="container">
-    <h2>User Management</h2>
+    <h2>ข้อมูลผู้ใช้งาน</h2>
 
     <?php
     if ($message) { echo "<div class='message'>$message</div>"; }
@@ -236,49 +237,49 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="index.php" onsubmit="return validateForm()">
         <input type="hidden" id="edit_user_id" name="edit_user_id">
         <div class="form-group">
-            <label for="user_id">User ID:</label>
+            <label for="user_id">รหัสผู้ใช้งาน:</label>
             <input type="text" id="user_id" name="user_id" required>
         </div>
         <div class="form-group">
-            <label for="user_email">Email:</label>
+            <label for="user_email">อีเมล:</label>
             <input type="text" id="user_email" name="user_email" required>
         </div>
         <div class="form-group">
-            <label for="user_pass">Password:</label>
+            <label for="user_pass">รหัสผ่าน:</label>
             <input type="text" id="user_pass" name="user_pass" required>
         </div>
         <div class="form-group">
-            <label for="user_name">Name:</label>
+            <label for="user_name">ชื่อ:</label>
             <input type="text" id="user_name" name="user_name" required>
         </div>
         <div class="form-group">
-            <label for="user_age">Age:</label>
+            <label for="user_age">อายุ:</label>
             <input type="number" id="user_age" name="user_age" required>
         </div>
         <div class="form-group">
-            <label for="user_photo">Photo:</label>
+            <label for="user_photo">รูปภาพ:</label>
             <input type="text" id="user_photo" name="user_photo" required>
         </div>
         <div class="form-group">
-            <label for="user_token">Token:</label>
+            <label for="user_token">โทเค็น:</label>
             <input type="text" id="user_token" name="user_token" required>
         </div>
-        <button type="submit" class="btn-submit">Save</button>
+        <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
-    <h2>User List</h2>
+    <h2>รายการ</h2>
 
     <?php
     $sql = "SELECT user_id, user_email, user_name, user_age, user_photo, user_token FROM user_information";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>User ID</th><th>Email</th><th>Name</th><th>Age</th><th>Photo</th><th>Token</th><th>Actions</th></tr>";
+        echo "<table><tr><th>รหัสผู้ใช้งาน</th><th>อีเมล</th><th>ชื่อ</th><th>อายุ</th><th>รูปภาพ</th><th>โทเค็น</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["user_id"]."</td><td>".$row["user_email"]."</td><td>".$row["user_name"]."</td><td>".$row["user_age"]."</td><td>".$row["user_photo"]."</td><td>".$row["user_token"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editUser(\"".$row["user_id"]."\")'>Edit</button>
-                <a class='btn btn-delete' href='?delete=".$row["user_id"]."'>Delete</a>
+                <button class='btn btn-edit' onclick='editUser(\"".$row["user_id"]."\")'>แก้ไข</button>
+                <a class='btn btn-delete' href='?delete=".$row["user_id"]."'>ลบ</a>
             </td></tr>";
         }
         echo "</table>";

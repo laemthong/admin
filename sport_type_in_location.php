@@ -72,7 +72,7 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sport Type in Location Management</title>
+    <title>ข้อมูลประเภทสนามกีฬา</title>
     <style>
         body {
             display: flex;
@@ -183,20 +183,21 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="sidebar">
-    <h2>Menu</h2>
-    <a href="index.php">User Management</a>
-    <a href="sport.php">Sport Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <a href="profile.php">Profile Management</a>
+<h2>เมนู</h2>
+    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+    <a href="sport.php">ข้อมูลกีฬา</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
+    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="activity.php">ข้อมูลกิจกรรม</a>
+    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    <a href="approve.php">อนุมัติสถานที่</a>
 </div>
 
 <div class="container">
-    <h2>Sport Type in Location Management</h2>
+    <h2>ข้อมูลประเภทสนามกีฬา</h2>
 
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
@@ -204,9 +205,9 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="sport_type_in_location.php">
         <input type="hidden" id="type_in_location_id" name="type_in_location_id">
         <div class="form-group">
-            <label for="location_id">Location:</label>
+            <label for="location_id">สถานที่เล่นกีฬา:</label>
             <select id="location_id" name="location_id" required>
-                <option value="">Select Location</option>
+                <option value="">กรุณาเลือกสถานที่เล่นกีฬา</option>
                 <?php
                 $sql = "SELECT location_id, location_name FROM location";
                 $result = $conn->query($sql);
@@ -217,9 +218,9 @@ if (isset($_GET['delete'])) {
             </select>
         </div>
         <div class="form-group">
-            <label for="type_id">Sport Type:</label>
+            <label for="type_id">ประเภทกีฬา:</label>
             <select id="type_id" name="type_id" required>
-                <option value="">Select Sport Type</option>
+                <option value="">กรุณาเลือกประเภทกีฬา</option>
                 <?php
                 $sql = "SELECT type_id, type_name FROM sport_type";
                 $result = $conn->query($sql);
@@ -229,10 +230,10 @@ if (isset($_GET['delete'])) {
                 ?>
             </select>
         </div>
-        <button type="submit" class="btn-submit">Save</button>
+        <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
-    <h2>Sport Type in Location List</h2>
+    <h2>รายการ</h2>
 
     <?php
     $sql = "SELECT s.type_in_location_id, l.location_name, t.type_name 
@@ -242,12 +243,12 @@ if (isset($_GET['delete'])) {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>ID</th><th>Location</th><th>Sport Type</th><th>Actions</th></tr>";
+        echo "<table><tr><th>รหัสประเภทสนามกีฬา</th><th>สถานที่เล่นกีฬา</th><th>ประเภทกีฬา</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["type_in_location_id"]."</td><td>".$row["location_name"]."</td><td>".$row["type_name"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editTypeInLocation(\"".$row["type_in_location_id"]."\", \"".$row["location_name"]."\", \"".$row["type_name"]."\")'>Edit</button>
-                <a class='btn btn-delete' href='sport_type_in_location.php?delete=".$row["type_in_location_id"]."'>Delete</a>
+                <button class='btn btn-edit' onclick='editTypeInLocation(\"".$row["type_in_location_id"]."\", \"".$row["location_name"]."\", \"".$row["type_name"]."\")'>แก้ไข</button>
+                <a class='btn btn-delete' href='sport_type_in_location.php?delete=".$row["type_in_location_id"]."'>ลบ</a>
             </td></tr>";
         }
         echo "</table>";

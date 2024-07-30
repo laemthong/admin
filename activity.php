@@ -33,25 +33,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     } else {
-        // Check for duplicate activity_name
-        $sql = "SELECT * FROM activity WHERE activity_name='$activity_name'";
-        $result = $conn->query($sql);
-        if ($result->num_rows > 0) {
-            $error = "ข้อมูลซ้ำกรุณากรอกใหม่";
-        } else {
-            // Generate new activity_id
-            $activity_id = getNextActivityId($conn);
+        // Generate new activity_id
+        $activity_id = getNextActivityId($conn);
 
-            // Insert new record
-            $sql = "INSERT INTO activity (activity_id, activity_name, activity_date, location_id, sport_id) 
-                    VALUES ('$activity_id', '$activity_name', '$activity_date', '$location_id', '$sport_id')";
-            if ($conn->query($sql) === TRUE) {
-                $message = "New activity created successfully";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            } else {
-                $error = "Error: " . $sql . "<br>" . $conn->error;
-            }
+        // Insert new record
+        $sql = "INSERT INTO activity (activity_id, activity_name, activity_date, location_id, sport_id) 
+                VALUES ('$activity_id', '$activity_name', '$activity_date', '$location_id', '$sport_id')";
+        if ($conn->query($sql) === TRUE) {
+            $message = "New activity created successfully";
+        } else {
+            $error = "Error: " . $sql . "<br>" . $conn->error;
         }
     }
 }
@@ -61,8 +52,6 @@ if (isset($_GET['delete'])) {
     $sql = "DELETE FROM activity WHERE activity_id='$activity_id'";
     if ($conn->query($sql) === TRUE) {
         $message = "Activity deleted successfully";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -74,7 +63,7 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Management</title>
+    <title>ข้อมูลกิจกรรม</title>
     <style>
         body {
             display: flex;
@@ -185,20 +174,21 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="sidebar">
-    <h2>Menu</h2>
-    <a href="index.php">User Management</a>
-    <a href="sport.php">Sport Management</a>
-    <a href="sport_type_in_location.php">Sport Type in Location Management</a>
-    <a href="sport_type.php">Sport Type Management</a>
-    <a href="location.php">Location Management</a>
-    <a href="activity.php">Activity Management</a>
-    <a href="member_in_activity.php">Member in Activity Management</a>
-    <a href="hashtag.php">Hashtag Management</a>
-    <a href="profile.php">Profile Management</a>
+<h2>เมนู</h2>
+    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+    <a href="sport.php">ข้อมูลกีฬา</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
+    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="activity.php">ข้อมูลกิจกรรม</a>
+    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    <a href="approve.php">อนุมัติสถานที่</a>
 </div>
 
 <div class="container">
-    <h2>Activity Management</h2>
+    <h2>ข้อมูลกิจกรรม</h2>
 
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
@@ -206,57 +196,58 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="activity.php">
         <input type="hidden" id="activity_id" name="activity_id">
         <div class="form-group">
-            <label for="activity_name">Activity Name:</label>
+            <label for="activity_name">ชื่อกิจกรรม:</label>
             <input type="text" id="activity_name" name="activity_name" required>
         </div>
         <div class="form-group">
-            <label for="activity_date">Activity Date:</label>
-            <input type="text" id="activity_date" name="activity_date" placeholder="" required>
+            <label for="activity_date">วันที่:</label>
+            <input type="datetime-local" id="activity_date" name="activity_date" required>
         </div>
         <div class="form-group">
-            <label for="location_id">Location:</label>
+            <label for="location_id">สถานที่เล่นกีฬา:</label>
             <select id="location_id" name="location_id" required>
-                <option value="">Select Location</option>
+                <option value="">กรุณาเลือกสถานที่เล่นกีฬา</option>
                 <?php
                 $sql = "SELECT location_id, location_name FROM location";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
-                    echo "<option value='" . $row['location_id'] . "'>" . $row['location_name'] . "</option>";
+                    echo "<option value='".$row['location_id']."'>".$row['location_name']."</option>";
                 }
                 ?>
             </select>
         </div>
         <div class="form-group">
-            <label for="sport_id">Sport:</label>
+            <label for="sport_id">กีฬา:</label>
             <select id="sport_id" name="sport_id" required>
-                <option value="">Select Sport</option>
+                <option value="">กรุณาเลือกข้อมูลกีฬา</option>
                 <?php
                 $sql = "SELECT sport_id, sport_name FROM sport";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
-                    echo "<option value='" . $row['sport_id'] . "'>" . $row['sport_name'] . "</option>";
+                    echo "<option value='".$row['sport_id']."'>".$row['sport_name']."</option>";
                 }
                 ?>
             </select>
         </div>
-        <button type="submit" class="btn-submit">Save</button>
+        <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
     <h2>Activity List</h2>
 
     <?php
-    $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name FROM activity a
-            JOIN location l ON a.location_id = l.location_id
-            JOIN sport s ON a.sport_id = s.sport_id";
+    $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, a.location_id, a.sport_id
+            FROM activity a
+            LEFT JOIN location l ON a.location_id = l.location_id
+            LEFT JOIN sport s ON a.sport_id = s.sport_id";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>Activity ID</th><th>Name</th><th>Date</th><th>Location</th><th>Sport</th><th>Actions</th></tr>";
+        echo "<table><tr><th>รหัสกิจกรรม</th><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".$row["activity_id"]."</td><td>".$row["activity_name"]."</td><td>".$row["activity_date"]."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_name"]."\", \"".$row["sport_name"]."\")'>Edit</button>
-                <a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>Delete</a>
+                <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\")'>แก้ไข</button>
+                <a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>ลบ</a>
             </td></tr>";
         }
         echo "</table>";
