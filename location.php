@@ -75,7 +75,7 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Management</title>
+    <title>ข้อมูลสถานที่เล่นกีฬา</title>
     <style>
         body {
             display: flex;
