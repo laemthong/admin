@@ -37,29 +37,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $stmt->close();
     } else {
-        // Check for duplicate location_name
-        $stmt = $conn->prepare("SELECT * FROM location WHERE location_name=?");
-        $stmt->bind_param("s", $location_name);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Generate new location_id
+        $location_id = getNextLocationId($conn);
 
-        if ($result->num_rows > 0) {
-            $error = "ข้อมูลซ้ำกรุณากรอกใหม่";
+        // Insert new record
+        $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, location_map, type_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_id);
+
+        if ($stmt->execute()) {
+            $message = "สร้างข้อมูลใหม่สำเร็จ";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         } else {
-            // Generate new location_id
-            $location_id = getNextLocationId($conn);
-
-            // Insert new record
-            $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, location_map, type_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
-            $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_id);
-
-            if ($stmt->execute()) {
-                $message = "สร้างข้อมูลใหม่สำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            } else {
-                $error = "Error: " . $stmt->error;
-            }
+            $error = "Error: " . $stmt->error;
         }
         $stmt->close();
     }
