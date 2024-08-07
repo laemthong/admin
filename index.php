@@ -36,7 +36,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn->query($sql);
             }
         } else {
-        
             // Check for duplicate user_id
             $sql = "SELECT * FROM user_information WHERE user_id='$user_id'";
             $result = $conn->query($sql);
@@ -45,11 +44,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             // Insert user
-            $sql = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_age, user_photo, user_token)
-                    VALUES ('$user_id', '$user_email', '$user_pass', '$user_name', '$user_age', '$user_photo', '$user_token')";
+            $sql = "INSERT INTO user_information (user_id, user_email, user_pass, user_name, user_age, user_photo, user_token, status)
+                    VALUES ('$user_id', '$user_email', '$user_pass', '$user_name', '$user_age', '$user_photo', '$user_token', 'active')";
             $conn->query($sql);
         }
-        
 
         $conn->commit();
         $message = "เพิ่มข้อมูลสำเร็จ";
@@ -78,6 +76,27 @@ if (isset($_GET['delete'])) {
 
         $conn->commit();
         $message = "แก้ไขข้อมูลสำเร็จ";
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        $error = "Error: " . $e->getMessage();
+    }
+}
+
+// Suspend user
+if (isset($_GET['suspend'])) {
+    $user_id = $_GET['suspend'];
+
+    $conn->begin_transaction();
+
+    try {
+        // Suspend the user
+        $sql = "UPDATE user_information SET status='inactive' WHERE user_id='$user_id'";
+        $conn->query($sql);
+
+        $conn->commit();
+        $message = "ระงับข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } catch (Exception $e) {
@@ -198,6 +217,9 @@ if (isset($_GET['delete'])) {
         .btn-delete {
             background: #e74c3c;
         }
+        .btn-suspend {
+            background: #e67e22;
+        }
     </style>
     <script>
         function validateForm() {
@@ -270,7 +292,7 @@ if (isset($_GET['delete'])) {
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT user_id, user_email, user_name, user_age, user_photo, user_token FROM user_information";
+    $sql = "SELECT user_id, user_email, user_name, user_age, user_photo, user_token FROM user_information WHERE status = 'active'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -280,6 +302,7 @@ if (isset($_GET['delete'])) {
             <td>
                 <button class='btn btn-edit' onclick='editUser(\"".$row["user_id"]."\")'>แก้ไข</button>
                 <a class='btn btn-delete' href='?delete=".$row["user_id"]."'>ลบ</a>
+                <a class='btn btn-suspend' href='?suspend=".$row["user_id"]."'>ระงับ</a>
             </td></tr>";
         }
         echo "</table>";
