@@ -4,16 +4,27 @@ include 'config.php';
 $message = '';
 $error = '';
 
-// Function to generate the next location_id
+// Function to generate the next numeric location_id
 function getNextLocationId($conn) {
     $sql = "SELECT location_id FROM location ORDER BY location_id DESC LIMIT 1";
     $result = $conn->query($sql);
     $lastId = $result->fetch_assoc();
     if ($lastId) {
-        $num = (int)substr($lastId['location_id'], 1) + 1;
-        return 'l' . str_pad($num, 3, '0', STR_PAD_LEFT);
+        $num = (int)$lastId['location_id'] + 1;
+        return $num;
     } else {
-        return 'l001';
+        return 1;
+    }
+}
+
+// Handle delete request
+if (isset($_GET['delete'])) {
+    $location_id = $_GET['delete'];
+    $sql = "DELETE FROM location WHERE location_id='$location_id'";
+    if ($conn->query($sql) === TRUE) {
+        $message = "ลบข้อมูลสำเร็จ";
+    } else {
+        $error = "เกิดข้อผิดพลาด: " . $conn->error;
     }
 }
 
@@ -23,12 +34,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_time = $_POST["location_time"] ?? '';
     $location_photo = $_POST["location_photo"] ?? '';
     $location_map = $_POST["location_map"] ?? '';
-    $type_id = $_POST["type_id"] ?? '';
+    $type_ids = $_POST["type_id"] ?? [];
+    $type_ids_str = implode(',', $type_ids); // Convert array to comma-separated string
 
     if (!empty($location_id)) {
         // Update existing record
         $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, location_map=?, type_id=? WHERE location_id=?");
-        $stmt->bind_param("ssssss", $location_name, $location_time, $location_photo, $location_map, $type_id, $location_id);
+        $stmt->bind_param("ssssss", $location_name, $location_time, $location_photo, $location_map, $type_ids_str, $location_id);
 
         if ($stmt->execute()) {
             $message = "อัปเดตข้อมูลสำเร็จ";
@@ -42,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Insert new record
         $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, location_map, type_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_id);
+        $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_ids_str);
 
         if ($stmt->execute()) {
             $message = "สร้างข้อมูลใหม่สำเร็จ";
@@ -54,24 +66,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 }
-
-if (isset($_GET['delete'])) {
-    $location_id = $_GET['delete'];
-    $stmt = $conn->prepare("DELETE FROM location WHERE location_id=?");
-    $stmt->bind_param("s", $location_id);
-
-    if ($stmt->execute()) {
-        $message = "ลบข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
-    } else {
-        $error = "Error: " . $stmt->error;
-    }
-    $stmt->close();
-}
 ?>
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -82,6 +79,7 @@ if (isset($_GET['delete'])) {
             min-height: 100vh;
             font-family: Arial, sans-serif;
             margin: 0;
+            background: #f4f7f6;
         }
         .sidebar {
             width: 250px;
@@ -95,6 +93,7 @@ if (isset($_GET['delete'])) {
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
+            color: white;
         }
         .sidebar a {
             color: white;
@@ -116,6 +115,7 @@ if (isset($_GET['delete'])) {
         }
         h2 {
             margin-top: 0;
+            color: #2c3e50;
         }
         .form-group {
             margin-bottom: 15px;
@@ -123,6 +123,7 @@ if (isset($_GET['delete'])) {
         .form-group label {
             display: block;
             margin-bottom: 5px;
+            color: #2c3e50;
         }
         .form-group input, .form-group select {
             width: 100%;
@@ -131,7 +132,22 @@ if (isset($_GET['delete'])) {
             border: 1px solid #bdc3c7;
             border-radius: 5px;
         }
-        .btn-submit {
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            border: 1px solid #bdc3c7;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        .btn-submit, .btn-select-all {
             display: inline-block;
             padding: 10px 20px;
             color: white;
@@ -139,6 +155,10 @@ if (isset($_GET['delete'])) {
             border: none;
             border-radius: 5px;
             cursor: pointer;
+        }
+        .btn-select-all {
+            background: #3498db;
+            margin-bottom: 10px;
         }
         .message, .error {
             padding: 15px;
@@ -157,6 +177,7 @@ if (isset($_GET['delete'])) {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background:  #ecf0f1;
         }
         table, th, td {
             border: 1px solid #bdc3c7;
@@ -165,14 +186,16 @@ if (isset($_GET['delete'])) {
             padding: 15px;
             text-align: left;
         }
+        th {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
         .btn {
             display: inline-block;
             padding: 5px 10px;
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 5px;
-            background: #3498db;
             text-align: center;
         }
         .btn-edit {
@@ -181,12 +204,24 @@ if (isset($_GET['delete'])) {
         .btn-delete {
             background: #e74c3c;
         }
+        .btn-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
     </style>
+    <script>
+        function toggleCheckboxes() {
+            const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+        }
+    </script>
 </head>
 <body>
 
 <div class="sidebar">
-<h2>เมนู</h2>
+    <h2>เมนู</h2>
     <a href="index.php">ข้อมูลผู้ใช้งาน</a>
     <a href="sport.php">ข้อมูลกีฬา</a>
     <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
@@ -225,16 +260,16 @@ if (isset($_GET['delete'])) {
         </div>
         <div class="form-group">
             <label for="type_id">ประเภทกีฬา:</label>
-            <select id="type_id" name="type_id" required>
-                <option value="">กรุณาเลือกประเภทกีฬา</option>
+            <button type="button" class="btn-select-all" onclick="toggleCheckboxes()">เลือกทั้งหมด</button>
+            <div class="checkbox-group">
                 <?php
                 $sql = "SELECT type_id, type_name FROM sport_type";
                 $result = $conn->query($sql);
                 while ($row = $result->fetch_assoc()) {
-                    echo "<option value='" . htmlspecialchars($row['type_id']) . "'>" . htmlspecialchars($row['type_name']) . "</option>";
+                    echo "<label><input type='checkbox' name='type_id[]' value='" . htmlspecialchars($row['type_id']) . "'>" . htmlspecialchars($row['type_name']) . "</label>";
                 }
                 ?>
-            </select>
+            </div>
         </div>
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
@@ -242,18 +277,19 @@ if (isset($_GET['delete'])) {
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.location_map, l.type_id, s.type_name 
+    $sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.location_map, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
             FROM location l 
-            JOIN sport_type s ON l.type_id = s.type_id
-            WHERE l.status = 'approved'";
+            LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id)
+            WHERE l.status = 'approved'
+            GROUP BY l.location_id";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         echo "<table><tr><th>รหัสสถานที่เล่นกีฬา</th><th>ชื่อ</th><th>เวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ตำแหน่ง</th><th>ประเภทกีฬา</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".htmlspecialchars($row["location_id"])."</td><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td>".htmlspecialchars($row["location_photo"])."</td><td>".htmlspecialchars($row["location_map"])."</td><td>".htmlspecialchars($row["type_name"])."</td>
-            <td>
-                <button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["location_map"])."\", \"".htmlspecialchars($row["type_id"])."\")'>แก้ไข</button>
+            echo "<tr><td>".htmlspecialchars($row["location_id"])."</td><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td>".htmlspecialchars($row["location_photo"])."</td><td>".htmlspecialchars($row["location_map"])."</td><td>".htmlspecialchars($row["type_names"])."</td>
+            <td class='btn-container'>
+                <button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["location_map"])."\", \"".htmlspecialchars($row["type_id"] ?? '')."\")'>แก้ไข</button>
                 <a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>
             </td></tr>";
         }
@@ -271,7 +307,15 @@ if (isset($_GET['delete'])) {
         document.getElementById('location_time').value = location_time;
         document.getElementById('location_photo').value = location_photo;
         document.getElementById('location_map').value = location_map;
-        document.getElementById('type_id').value = type_id;
+        // ดึงค่าที่เลือกให้กลับมาแสดงผลใน checkbox
+        const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+        checkboxes.forEach(checkbox => {
+            if (type_id.split(',').includes(checkbox.value)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
     }
     </script>
 

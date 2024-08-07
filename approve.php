@@ -17,9 +17,11 @@ if (isset($_POST['approve']) || isset($_POST['reject'])) {
     }
 }
 
-$sql = "SELECT l.*, s.type_name FROM location l 
-        JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id) > 0
-        WHERE l.status='pending'";
+$sql = "SELECT l.*, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
+        FROM location l 
+        LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id) > 0
+        WHERE l.status='pending'
+        GROUP BY l.location_id";
 $result = $conn->query($sql);
 ?>
 
@@ -118,6 +120,10 @@ $result = $conn->query($sql);
             padding: 15px;
             text-align: left;
         }
+        .btn-container {
+            display: inline-block;
+            white-space: nowrap;
+        }
         .btn {
             display: inline-block;
             padding: 5px 10px;
@@ -125,7 +131,6 @@ $result = $conn->query($sql);
             text-decoration: none;
             border-radius: 5px;
             margin-right: 5px;
-            background: #3498db;
             text-align: center;
         }
         .btn-approve {
@@ -173,14 +178,25 @@ $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             while($row = $result->fetch_assoc()) {
                 echo "<tr>";
-                echo "<td>" . $row['location_name'] . "</td>";
-                echo "<td>" . $row['location_time'] . "</td>";
-                echo "<td>" . $row['location_map'] . "</td>";
-                echo "<td><img src='" . $row['location_photo'] . "' width='100'></td>";
-                echo "<td>" . $row['type_name'] . "</td>";
-                echo "<td>
+                echo "<td>" . htmlspecialchars($row['location_name']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['location_time']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['location_map']) . "</td>";
+                echo "<td><img src='" . htmlspecialchars($row['location_photo']) . "' width='100'></td>";
+
+                // Displaying types of sports as comma-separated values
+                $types = explode(',', $row['type_id']);
+                $type_names = [];
+                foreach ($types as $type_id) {
+                    $type_result = $conn->query("SELECT type_name FROM sport_type WHERE type_id='$type_id'");
+                    if ($type_row = $type_result->fetch_assoc()) {
+                        $type_names[] = $type_row['type_name'];
+                    }
+                }
+                echo "<td>" . implode(', ', $type_names) . "</td>";
+
+                echo "<td class='btn-container'>
                         <form method='post' action=''>
-                            <input type='hidden' name='location_id' value='" . $row['location_id'] . "'>
+                            <input type='hidden' name='location_id' value='" . htmlspecialchars($row['location_id']) . "'>
                             <button type='submit' name='approve' class='btn btn-approve'>อนุมัติ</button>
                             <button type='submit' name='reject' class='btn btn-reject'>ไม่อนุมัติ</button>
                         </form>
