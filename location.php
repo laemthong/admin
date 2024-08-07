@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssssss", $location_name, $location_time, $location_photo, $location_map, $type_ids_str, $location_id);
 
         if ($stmt->execute()) {
-            $message = "อัปเดตข้อมูลสำเร็จ";
+            $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $stmt->error;
         }
@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_ids_str);
 
         if ($stmt->execute()) {
-            $message = "สร้างข้อมูลใหม่สำเร็จ";
+            $message = "เพิ่มข้อมูลสำเร็จ";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
         } else {

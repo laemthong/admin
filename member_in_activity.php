@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Update existing record
         $sql = "UPDATE member_in_activity SET activity_id='$activity_id', user_id='$user_id' WHERE member_id='$member_id'";
         if ($conn->query($sql) === TRUE) {
-            $message = "Record updated successfully";
+            $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sql = "INSERT INTO member_in_activity (member_id, activity_id, user_id) 
                     VALUES ('$member_id', '$activity_id', '$user_id')";
             if ($conn->query($sql) === TRUE) {
-                $message = "New member in activity created successfully";
+                $message = "เพิ่มข้อมูลสำเร็จ";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } else {
@@ -58,7 +58,7 @@ if (isset($_GET['delete'])) {
     $member_id = $_GET['delete'];
     $sql = "DELETE FROM member_in_activity WHERE member_id='$member_id'";
     if ($conn->query($sql) === TRUE) {
-        $message = "Member in activity deleted successfully";
+        $message = "ลบข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } else {

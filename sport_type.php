@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Update existing record
         $sql = "UPDATE sport_type SET type_name='$type_name' WHERE type_id='$type_id'";
         if ($conn->query($sql) === TRUE) {
-            $message = "Record updated successfully";
+            $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Insert new record
             $sql = "INSERT INTO sport_type (type_id, type_name) VALUES ('$type_id', '$type_name')";
             if ($conn->query($sql) === TRUE) {
-                $message = "New sport type created successfully";
+                $message = "เพิ่มข้อมูลสำเร็จ";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } else {
@@ -56,7 +56,7 @@ if (isset($_GET['delete'])) {
     $type_id = $_GET['delete'];
     $sql = "DELETE FROM sport_type WHERE type_id='$type_id'";
     if ($conn->query($sql) === TRUE) {
-        $message = "Sport type deleted successfully";
+        $message = "ลบข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } else {

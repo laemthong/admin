@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
 
         $conn->commit();
-        $message = "Record saved successfully";
+        $message = "เพิ่มข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } catch (Exception $e) {
@@ -77,7 +77,7 @@ if (isset($_GET['delete'])) {
         $conn->query($sql);
 
         $conn->commit();
-        $message = "Record deleted successfully";
+        $message = "แก้ไขข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } catch (Exception $e) {

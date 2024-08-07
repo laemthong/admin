@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Update existing record
         $sql = "UPDATE hashtag SET hashtag_message='$hashtag_message' WHERE hashtag_id='$hashtag_id'";
         if ($conn->query($sql) === TRUE) {
-            $message = "Record updated successfully";
+            $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Insert new record
             $sql = "INSERT INTO hashtag (hashtag_id, hashtag_message) VALUES ('$hashtag_id', '$hashtag_message')";
             if ($conn->query($sql) === TRUE) {
-                $message = "New hashtag created successfully";
+                $message = "เพิ่มข้อมูลสำเร็จ";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } else {
@@ -56,7 +56,7 @@ if (isset($_GET['delete'])) {
     $hashtag_id = $_GET['delete'];
     $sql = "DELETE FROM hashtag WHERE hashtag_id='$hashtag_id'";
     if ($conn->query($sql) === TRUE) {
-        $message = "Hashtag deleted successfully";
+        $message = "ลบข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } else {

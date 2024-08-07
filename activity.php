@@ -23,12 +23,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $activity_date = $_POST["activity_date"] ?? '';
     $location_id = $_POST["location_id"] ?? '';
     $sport_id = $_POST["sport_id"] ?? '';
+    $user_id = $_POST["user_id"] ?? '';
 
     if (!empty($activity_id)) {
         // Update existing record
-        $sql = "UPDATE activity SET activity_name='$activity_name', activity_date='$activity_date', location_id='$location_id', sport_id='$sport_id' WHERE activity_id='$activity_id'";
+        $sql = "UPDATE activity SET activity_name='$activity_name', activity_date='$activity_date', location_id='$location_id', sport_id='$sport_id', user_id='$user_id' WHERE activity_id='$activity_id'";
         if ($conn->query($sql) === TRUE) {
-            $message = "Record updated successfully";
+            $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -37,10 +38,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $activity_id = getNextActivityId($conn);
 
         // Insert new record
-        $sql = "INSERT INTO activity (activity_id, activity_name, activity_date, location_id, sport_id) 
-                VALUES ('$activity_id', '$activity_name', '$activity_date', '$location_id', '$sport_id')";
+        $sql = "INSERT INTO activity (activity_id, activity_name, activity_date, location_id, sport_id, user_id, status) 
+                VALUES ('$activity_id', '$activity_name', '$activity_date', '$location_id', '$sport_id', '$user_id', 'active')";
         if ($conn->query($sql) === TRUE) {
-            $message = "New activity created successfully";
+            $message = "เพิ่มข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -51,7 +52,17 @@ if (isset($_GET['delete'])) {
     $activity_id = $_GET['delete'];
     $sql = "DELETE FROM activity WHERE activity_id='$activity_id'";
     if ($conn->query($sql) === TRUE) {
-        $message = "Activity deleted successfully";
+        $message = "ลบข้อมูลสำเร็จ";
+    } else {
+        $error = "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+
+if (isset($_GET['suspend'])) {
+    $activity_id = $_GET['suspend'];
+    $sql = "UPDATE activity SET status='inactive' WHERE activity_id='$activity_id'";
+    if ($conn->query($sql) === TRUE) {
+        $message = "ระงับข้อมูลสำเร็จ";
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
@@ -169,6 +180,9 @@ if (isset($_GET['delete'])) {
         .btn-delete {
             background: #e74c3c;
         }
+        .btn-suspend {
+            background: #e67e22;
+        }
     </style>
 </head>
 <body>
@@ -229,25 +243,41 @@ if (isset($_GET['delete'])) {
                 ?>
             </select>
         </div>
+        <div class="form-group">
+            <label for="user_id">ผู้ใช้งาน:</label>
+            <select id="user_id" name="user_id" required>
+                <option value="">กรุณาเลือกข้อมูลผู้ใช้งาน</option>
+                <?php
+                $sql = "SELECT user_id, user_name FROM user_information";
+                $result = $conn->query($sql);
+                while ($row = $result->fetch_assoc()) {
+                    echo "<option value='".$row['user_id']."'>".$row['user_name']."</option>";
+                }
+                ?>
+            </select>
+        </div>
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
-    <h2>Activity List</h2>
+    <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, a.location_id, a.sport_id
+    $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, u.user_name, a.location_id, a.sport_id, a.user_id
             FROM activity a
             LEFT JOIN location l ON a.location_id = l.location_id
-            LEFT JOIN sport s ON a.sport_id = s.sport_id";
+            LEFT JOIN sport s ON a.sport_id = s.sport_id
+            LEFT JOIN user_information u ON a.user_id = u.user_id
+            WHERE a.status = 'active'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>รหัสกิจกรรม</th><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>การดำเนินการ</th></tr>";
+        echo "<table><tr><th>รหัสกิจกรรม</th><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>ผู้ใช้งาน</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["activity_id"]."</td><td>".$row["activity_name"]."</td><td>".$row["activity_date"]."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td>
+            echo "<tr><td>".$row["activity_id"]."</td><td>".$row["activity_name"]."</td><td>".$row["activity_date"]."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td><td>".$row["user_name"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\")'>แก้ไข</button>
+                <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\", \"".$row["user_id"]."\")'>แก้ไข</button>
                 <a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>ลบ</a>
+                <a class='btn btn-suspend' href='activity.php?suspend=".$row["activity_id"]."'>ระงับ</a>
             </td></tr>";
         }
         echo "</table>";
@@ -258,12 +288,13 @@ if (isset($_GET['delete'])) {
     ?>
 
     <script>
-    function editActivity(activity_id, activity_name, activity_date, location_id, sport_id) {
+    function editActivity(activity_id, activity_name, activity_date, location_id, sport_id, user_id) {
         document.getElementById('activity_id').value = activity_id;
         document.getElementById('activity_name').value = activity_name;
         document.getElementById('activity_date').value = activity_date;
         document.getElementById('location_id').value = location_id;
         document.getElementById('sport_id').value = sport_id;
+        document.getElementById('user_id').value = user_id;
     }
     </script>
 

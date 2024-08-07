@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Update existing record
         $sql = "UPDATE profile SET pro_name='$pro_name', pro_username='$pro_username', pro_brief='$pro_brief' WHERE pro_id='$pro_id'";
         if ($conn->query($sql) === TRUE) {
-            $message = "Record updated successfully";
+            $message = "แก้ไขข้อมูลสำเร็จ";
         } else {
             $error = "Error: " . $sql . "<br>" . $conn->error;
         }
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Insert new record
             $sql = "INSERT INTO profile (pro_id, pro_name, pro_username, pro_brief) VALUES ('$pro_id', '$pro_name', '$pro_username', '$pro_brief')";
             if ($conn->query($sql) === TRUE) {
-                $message = "New profile created successfully";
+                $message = "เพิ่มข้อมูลสำเร็จ";
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } else {
@@ -58,7 +58,7 @@ if (isset($_GET['delete'])) {
     $pro_id = $_GET['delete'];
     $sql = "DELETE FROM profile WHERE pro_id='$pro_id'";
     if ($conn->query($sql) === TRUE) {
-        $message = "Profile deleted successfully";
+        $message = "ลบข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } else {
