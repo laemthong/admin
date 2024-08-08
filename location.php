@@ -33,14 +33,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_name = $_POST["location_name"] ?? '';
     $location_time = $_POST["location_time"] ?? '';
     $location_photo = $_POST["location_photo"] ?? '';
-    $location_map = $_POST["location_map"] ?? '';
+    $latitude = $_POST["latitude"] ?? '';
+    $longitude = $_POST["longitude"] ?? '';
     $type_ids = $_POST["type_id"] ?? [];
     $type_ids_str = implode(',', $type_ids); // Convert array to comma-separated string
 
     if (!empty($location_id)) {
         // Update existing record
-        $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, location_map=?, type_id=? WHERE location_id=?");
-        $stmt->bind_param("ssssss", $location_name, $location_time, $location_photo, $location_map, $type_ids_str, $location_id);
+        $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, latitude=?, longitude=?, type_id=? WHERE location_id=?");
+        $stmt->bind_param("sssssss", $location_name, $location_time, $location_photo, $latitude, $longitude, $type_ids_str, $location_id);
 
         if ($stmt->execute()) {
             $message = "แก้ไขข้อมูลสำเร็จ";
@@ -53,8 +54,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $location_id = getNextLocationId($conn);
 
         // Insert new record
-        $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, location_map, type_id, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("ssssss", $location_id, $location_name, $location_time, $location_photo, $location_map, $type_ids_str);
+        $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, latitude, longitude, type_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("sssssss", $location_id, $location_name, $location_time, $location_photo, $latitude, $longitude, $type_ids_str);
 
         if ($stmt->execute()) {
             $message = "เพิ่มข้อมูลสำเร็จ";
@@ -216,6 +217,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
             checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
         }
+
+        function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids) {
+            document.getElementById('location_id').value = location_id;
+            document.getElementById('location_name').value = location_name;
+            document.getElementById('location_time').value = location_time;
+            document.getElementById('location_photo').value = location_photo;
+            document.getElementById('latitude').value = latitude;
+            document.getElementById('longitude').value = longitude;
+            
+            const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = type_ids.includes(checkbox.value);
+            });
+        }
     </script>
 </head>
 <body>
@@ -255,11 +270,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" id="location_photo" name="location_photo" required>
         </div>
         <div class="form-group">
-            <label for="location_map">ตำแหน่ง:</label>
-            <input type="text" id="location_map" name="location_map" required>
+            <label for="latitude">ละติจูด:</label>
+            <input type="text" id="latitude" name="latitude" required>
         </div>
         <div class="form-group">
-            <label for="type_id">ประเภทกีฬา:</label>
+            <label for="longitude">ลองจิจูด:</label>
+            <input type="text" id="longitude" name="longitude" required>
+        </div>
+        <div class="form-group">
+            <label for="type_id">ประเภทสนามกีฬา:</label>
             <button type="button" class="btn-select-all" onclick="toggleCheckboxes()">เลือกทั้งหมด</button>
             <div class="checkbox-group">
                 <?php
@@ -277,7 +296,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.location_map, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
+    $sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.latitude, l.longitude, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
             FROM location l 
             LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id)
             WHERE l.status = 'approved'
@@ -285,11 +304,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>รหัสสถานที่เล่นกีฬา</th><th>ชื่อ</th><th>เวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ตำแหน่ง</th><th>ประเภทกีฬา</th><th>การดำเนินการ</th></tr>";
+        echo "<table><tr><th>รหัสสถานที่เล่นกีฬา</th><th>ชื่อ</th><th>เวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".htmlspecialchars($row["location_id"])."</td><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td>".htmlspecialchars($row["location_photo"])."</td><td>".htmlspecialchars($row["location_map"])."</td><td>".htmlspecialchars($row["type_names"])."</td>
+            echo "<tr><td>".htmlspecialchars($row["location_id"])."</td><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td>".htmlspecialchars($row["location_photo"])."</td><td>".htmlspecialchars($row["latitude"])."</td><td>".htmlspecialchars($row["longitude"])."</td><td>".htmlspecialchars($row["type_names"])."</td>
             <td class='btn-container'>
-                <button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["location_map"])."\", \"".htmlspecialchars($row["type_id"] ?? '')."\")'>แก้ไข</button>
+                <button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["latitude"])."\", \"".htmlspecialchars($row["longitude"])."\", \"".htmlspecialchars($row["type_id"] ?? '')."\")'>แก้ไข</button>
                 <a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>
             </td></tr>";
         }
@@ -301,13 +320,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     ?>
 
     <script>
-    function editLocation(location_id, location_name, location_time, location_photo, location_map, type_id) {
+    function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_id) {
         document.getElementById('location_id').value = location_id;
         document.getElementById('location_name').value = location_name;
         document.getElementById('location_time').value = location_time;
         document.getElementById('location_photo').value = location_photo;
-        document.getElementById('location_map').value = location_map;
-        // ดึงค่าที่เลือกให้กลับมาแสดงผลใน checkbox
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
+        
         const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
         checkboxes.forEach(checkbox => {
             if (type_id.split(',').includes(checkbox.value)) {

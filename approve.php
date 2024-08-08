@@ -169,9 +169,10 @@ $result = $conn->query($sql);
         <tr>
             <th>ชื่อสถานที่</th>
             <th>เวลาเปิด - ปิด</th>
-            <th>ตำแหน่ง</th>
+            <th>ละติจูด</th>
+            <th>ลองจิจูด</th>
             <th>รูปภาพ</th>
-            <th>ประเภทกีฬา</th>
+            <th>ประเภทสนามกีฬา</th>
             <th>การดำเนินการ</th>
         </tr>
         <?php
@@ -180,20 +181,10 @@ $result = $conn->query($sql);
                 echo "<tr>";
                 echo "<td>" . htmlspecialchars($row['location_name']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['location_time']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['location_map']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['latitude']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['longitude']) . "</td>";
                 echo "<td><img src='" . htmlspecialchars($row['location_photo']) . "' width='100'></td>";
-
-                // Displaying types of sports as comma-separated values
-                $types = explode(',', $row['type_id']);
-                $type_names = [];
-                foreach ($types as $type_id) {
-                    $type_result = $conn->query("SELECT type_name FROM sport_type WHERE type_id='$type_id'");
-                    if ($type_row = $type_result->fetch_assoc()) {
-                        $type_names[] = $type_row['type_name'];
-                    }
-                }
-                echo "<td>" . implode(', ', $type_names) . "</td>";
-
+                echo "<td>" . htmlspecialchars($row['type_names']) . "</td>";
                 echo "<td class='btn-container'>
                         <form method='post' action=''>
                             <input type='hidden' name='location_id' value='" . htmlspecialchars($row['location_id']) . "'>
@@ -204,7 +195,7 @@ $result = $conn->query($sql);
                 echo "</tr>";
             }
         } else {
-            echo "<tr><td colspan='6'>ไม่มีสถานที่ที่รอการอนุมัติ</td></tr>";
+            echo "<tr><td colspan='7'>ไม่มีสถานที่ที่รอการอนุมัติ</td></tr>";
         }
         ?>
     </table>
