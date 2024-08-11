@@ -1,23 +1,19 @@
 <?php
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET");
+header('Content-Type: application/json');
 
+include 'config.php'; // ไฟล์ config.php นี้ควรมีการเชื่อมต่อฐานข้อมูล
 
-include 'config.php';
+$user_id = $_GET['user_id'];
 
-$sql = "SELECT pro_id, pro_name, pro_username, pro_brief FROM profile";
+$sql = "SELECT user_name, user_id, user_text FROM user_information WHERE user_id='$user_id'";
 $result = $conn->query($sql);
 
-$data = array();
-
 if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-} 
+    $row = $result->fetch_assoc();
+    echo json_encode($row);
+} else {
+    echo json_encode(array("message" => "No user found"));
+}
 
 $conn->close();
-
-echo json_encode($data);
 ?>
