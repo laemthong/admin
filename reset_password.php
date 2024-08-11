@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <title>Password Reset Form</title>
+                <title>รีเซ็ตรหัสผ่าน</title>
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
                 <style>
                      body {
