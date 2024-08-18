@@ -189,7 +189,7 @@ if (isset($_GET['suspend'])) {
 
 <div class="sidebar">
 <h2>เมนู</h2>
-    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
+<a href="index.php">ข้อมูลผู้ใช้งาน</a>
     <a href="sport.php">ข้อมูลกีฬา</a>
     <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
     <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
@@ -199,6 +199,8 @@ if (isset($_GET['suspend'])) {
     <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
     <a href="approve.php">อนุมัติสถานที่</a>
+    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
+</div>
 </div>
 
 <div class="container">
@@ -267,7 +269,7 @@ if (isset($_GET['suspend'])) {
             LEFT JOIN location l ON a.location_id = l.location_id
             LEFT JOIN sport s ON a.sport_id = s.sport_id
             LEFT JOIN user_information u ON a.user_id = u.user_id
-            WHERE a.status = 'active'";
+            WHERE a.status = 'active'"; //คำสั่ง SQL ที่สร้างขึ้นจะดึงข้อมูลจากตาราง activity (a) โดยใช้การเชื่อมต่อกับตารางอื่นๆ เช่น ตาราง location (l), ตาราง sport (s), และตาราง user_information (u) ผ่าน LEFT JOIN ซึ่งทำให้ได้ข้อมูลรายละเอียดของกิจกรรมที่เกี่ยวข้องกับชื่อสถานที่, ชื่อกีฬา, และชื่อผู้ใช้งาน  //เงื่อนไขที่กำหนด (WHERE a.status = 'active') จะกรองเอาเฉพาะกิจกรรมที่มีสถานะเป็น active เท่านั้น
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {

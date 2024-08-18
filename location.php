@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($location_id)) {
         // Update existing record
         $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, latitude=?, longitude=?, type_id=? WHERE location_id=?");
-        $stmt->bind_param("sssssss", $location_name, $location_time, $location_photo, $latitude, $longitude, $type_ids_str, $location_id);
+        $stmt->bind_param("sssssss", $location_name, $location_time, $location_photo, $latitude, $longitude, $type_ids_str, $location_id); //"sssssss" หมายถึงตัวแปรที่ใช้ใน SQL คือสตริง (String) ทั้งหมด 7 ตัว.
 
         if ($stmt->execute()) {
             $message = "แก้ไขข้อมูลสำเร็จ";
@@ -212,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
     <script>
-        function toggleCheckboxes() {
+        function toggleCheckboxes() { //ใช้สำหรับสลับสถานะการเลือกของเช็กบ็อกซ์ทั้งหมดในกลุ่มเดียวกัน
             const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
             const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
             checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
@@ -247,6 +247,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
     <a href="approve.php">อนุมัติสถานที่</a>
+    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
+</div>
 </div>
 
 <div class="container">

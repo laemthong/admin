@@ -4,7 +4,7 @@ include 'config.php';
 $message = '';
 $error = '';
 
-if (isset($_POST['approve']) || isset($_POST['reject'])) {
+if (isset($_POST['approve']) || isset($_POST['reject'])) { //ส่งข้อมูลจากฟอร์มด้วยปุ่ม approve หรือ reject ผ่าน POST หรือไม่
     $location_id = $_POST['location_id'];
     $status = isset($_POST['approve']) ? 'approved' : 'rejected';
 
@@ -16,12 +16,12 @@ if (isset($_POST['approve']) || isset($_POST['reject'])) {
         $error = "เกิดข้อผิดพลาด: " . $conn->error;
     }
 }
-
+        //ใช้ GROUP_CONCAT เพื่อรวมชื่อของประเภทกีฬา (type_name) เป็นสตริงที่คั่นด้วยเครื่องหมาย ,
 $sql = "SELECT l.*, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
         FROM location l 
         LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id) > 0
         WHERE l.status='pending'
-        GROUP BY l.location_id";
+        GROUP BY l.location_id";  
 $result = $conn->query($sql);
 ?>
 
@@ -155,6 +155,8 @@ $result = $conn->query($sql);
     <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
     <a href="approve.php">อนุมัติสถานที่</a>
+    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
+</div>
 </div>
 
 <div class="container">

@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
+        
         // สร้างโทเค็นเป็นตัวเลขสุ่มสำหรับรีเซ็ตรหัสผ่าน
         $token = mt_rand(100000, 999999);
         $resetLink = "http://192.168.100.14/test5/reset_password.php?token=$token";
