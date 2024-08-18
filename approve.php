@@ -147,15 +147,16 @@ $result = $conn->query($sql);
     <h2>เมนู</h2>
     <a href="index.php">ข้อมูลผู้ใช้งาน</a>
     <a href="sport.php">ข้อมูลกีฬา</a>
-    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
     <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
     <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
+    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
     <a href="activity.php">ข้อมูลกิจกรรม</a>
     <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
     <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
     <a href="approve.php">อนุมัติสถานที่</a>
-    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
+    
 </div>
 </div>
 
