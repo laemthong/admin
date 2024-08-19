@@ -212,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
     <script>
-        function toggleCheckboxes() { //ใช้สำหรับสลับสถานะการเลือกของเช็กบ็อกซ์ทั้งหมดในกลุ่มเดียวกัน
+        function toggleCheckboxes() {
             const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
             const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
             checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
@@ -227,8 +227,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('longitude').value = longitude;
             
             const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+            const typeIdArray = type_ids.split(','); // Convert the string to an array
             checkboxes.forEach(checkbox => {
-                checkbox.checked = type_ids.includes(checkbox.value);
+                checkbox.checked = typeIdArray.includes(checkbox.value);
             });
         }
     </script>
@@ -248,8 +249,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
     <a href="approve.php">อนุมัติสถานที่</a>
-    
-    
 </div>
 </div>
 
@@ -312,7 +311,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         while($row = $result->fetch_assoc()) {
             echo "<tr><td>".htmlspecialchars($row["location_id"])."</td><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td>".htmlspecialchars($row["location_photo"])."</td><td>".htmlspecialchars($row["latitude"])."</td><td>".htmlspecialchars($row["longitude"])."</td><td>".htmlspecialchars($row["type_names"])."</td>
             <td class='btn-container'>
-                <button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["latitude"])."\", \"".htmlspecialchars($row["longitude"])."\", \"".htmlspecialchars($row["type_id"] ?? '')."\")'>แก้ไข</button>
+                <button class='btn btn-edit' onclick='editLocation(
+                    \"".htmlspecialchars($row["location_id"])."\",
+                    \"".htmlspecialchars($row["location_name"])."\",
+                    \"".htmlspecialchars($row["location_time"])."\",
+                    \"".htmlspecialchars($row["location_photo"])."\",
+                    \"".htmlspecialchars($row["latitude"])."\",
+                    \"".htmlspecialchars($row["longitude"])."\",
+                    \"".htmlspecialchars($row["type_id"] ?? '')."\"
+                )'>แก้ไข</button>
                 <a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>
             </td></tr>";
         }
@@ -333,12 +340,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         document.getElementById('longitude').value = longitude;
         
         const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+        const typeIdArray = type_id.split(','); // Convert the string to an array
         checkboxes.forEach(checkbox => {
-            if (type_id.split(',').includes(checkbox.value)) {
-                checkbox.checked = true;
-            } else {
-                checkbox.checked = false;
-            }
+            checkbox.checked = typeIdArray.includes(checkbox.value);
         });
     }
     </script>
