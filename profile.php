@@ -79,19 +79,33 @@ if (isset($_GET['delete'])) {
             min-height: 100vh;
             font-family: Arial, sans-serif;
             margin: 0;
+            background: #f4f7f6;
         }
         .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
+    position: fixed; /* ล็อคแถบด้านข้าง */
+    top: 0;
+    left: 0;
+    height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
+    width: 250px;
+    background: #2c3e50;
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
+}
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
+            color: white;
+        }
+        .sidebar .menu-group {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1abc9c;
+            padding-bottom: 0;
+        }
+        .sidebar p {
+            margin-bottom: 0;
+            padding-bottom: 5px;
         }
         .sidebar a {
             color: white;
@@ -107,12 +121,15 @@ if (isset($_GET['delete'])) {
             background: #1abc9c;
         }
         .container {
-            flex: 1;
+            margin-left: 290px;
             padding: 20px;
             background: #ecf0f1;
+            flex: 1;
+            height: auto;
         }
         h2 {
             margin-top: 0;
+            color: #2c3e50;
         }
         .form-group {
             margin-bottom: 15px;
@@ -120,15 +137,31 @@ if (isset($_GET['delete'])) {
         .form-group label {
             display: block;
             margin-bottom: 5px;
+            color: #2c3e50;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             box-sizing: border-box;
             border: 1px solid #bdc3c7;
             border-radius: 5px;
         }
-        .btn-submit {
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            border: 1px solid #bdc3c7;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        .btn-submit, .btn-select-all {
             display: inline-block;
             padding: 10px 20px;
             color: white;
@@ -136,6 +169,10 @@ if (isset($_GET['delete'])) {
             border: none;
             border-radius: 5px;
             cursor: pointer;
+        }
+        .btn-select-all {
+            background: #3498db;
+            margin-bottom: 10px;
         }
         .message, .error {
             padding: 15px;
@@ -154,6 +191,7 @@ if (isset($_GET['delete'])) {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background:  #ecf0f1;
         }
         table, th, td {
             border: 1px solid #bdc3c7;
@@ -162,14 +200,16 @@ if (isset($_GET['delete'])) {
             padding: 15px;
             text-align: left;
         }
+        th {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
         .btn {
             display: inline-block;
             padding: 5px 10px;
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 5px;
-            background: #3498db;
             text-align: center;
         }
         .btn-edit {
@@ -178,26 +218,58 @@ if (isset($_GET['delete'])) {
         .btn-delete {
             background: #e74c3c;
         }
+        .btn-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        .sidebar a.btn-logout {
+    background: #e74c3c; /* สีแดง */
+    color: white; 
+    padding: 15px 20px;
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.sidebar a.btn-logout:hover {
+    background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
+}
     </style>
 </head>
 <body>
 
 <div class="sidebar">
 <h2>เมนู</h2>
-<a href="index.php">ข้อมูลผู้ใช้งาน</a>
-    <a href="sport.php">ข้อมูลกีฬา</a>
-    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
-    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
-    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
-    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+</br>
+    <div class="menu-group">
+        <p>จัดการข้อมูลพื้นฐาน</p>
+    </div>
+    
+    <div class="menu-group">
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
+        <a href="sport.php">ข้อมูลกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+        <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+        <a href="approve.php">อนุมัติสถานที่</a>
+
+    </br>
+        <p>ข้อมูลทั่วไป</p>
+    </div>
+    
+    <div class="menu-group">
+    <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
     <a href="activity.php">ข้อมูลกิจกรรม</a>
     <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
-    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
     
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
-</div>
 </div>
 
 <div class="container">
@@ -209,11 +281,11 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="profile.php">
         <input type="hidden" id="pro_id" name="pro_id">
         <div class="form-group">
-            <label for="pro_name">ชื่อ:</label>
+            <label for="pro_name">ชื่อ - สกุล:</label>
             <input type="text" id="pro_name" name="pro_name" required>
         </div>
         <div class="form-group">
-            <label for="pro_username">ชื่อผู้ใช้งาน:</label>
+            <label for="pro_username">ชื่อสมาชิก:</label>
             <input type="text" id="pro_username" name="pro_username" required>
         </div>
         <div class="form-group">
@@ -230,9 +302,9 @@ if (isset($_GET['delete'])) {
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>รหัสโปรไฟล์</th><th>ชื่อ</th><th>ชื่อผู้ใช้งาน</th><th>คำอธิบาย</th><th>การดำเนินการ</th></tr>";
+        echo "<table><tr><th>ชื่อ - สกุล</th><th>ชื่อสมาชิก</th><th>คำอธิบาย</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["pro_id"]."</td><td>".$row["pro_name"]."</td><td>".$row["pro_username"]."</td><td>".$row["pro_brief"]."</td>
+            echo "<tr><td>".$row["pro_name"]."</td><td>".$row["pro_username"]."</td><td>".$row["pro_brief"]."</td>
             <td>
                 <button class='btn btn-edit' onclick='editProfile(\"".$row["pro_id"]."\", \"".$row["pro_name"]."\", \"".$row["pro_username"]."\", \"".$row["pro_brief"]."\")'>แก้ไข</button>
                 <a class='btn btn-delete' href='profile.php?delete=".$row["pro_id"]."'>ลบ</a>

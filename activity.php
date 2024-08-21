@@ -4,7 +4,26 @@ include 'config.php';
 $message = '';
 $error = '';
 
-// Function to generate the next activity_id
+
+function formatDateThai($date) {
+    $months = array(
+        'Jan' => 'ม.ค.',
+        'Feb' => 'ก.พ.',
+        'Mar' => 'มี.ค.',
+        'Apr' => 'เม.ย.',
+        'May' => 'พ.ค.',
+        'Jun' => 'มิ.ย.',
+        'Jul' => 'ก.ค.',
+        'Aug' => 'ส.ค.',
+        'Sep' => 'ก.ย.',
+        'Oct' => 'ต.ค.',
+        'Nov' => 'พ.ย.',
+        'Dec' => 'ธ.ค.'
+    );
+    $date = strftime('%e %b %Y', strtotime($date));
+    return strtr($date, $months);
+}
+
 function getNextActivityId($conn) {
     $sql = "SELECT activity_id FROM activity ORDER BY activity_id DESC LIMIT 1";
     $result = $conn->query($sql);
@@ -66,7 +85,17 @@ if (isset($_GET['suspend'])) {
     } else {
         $error = "Error: " . $sql . "<br>" . $conn->error;
     }
+} elseif (isset($_GET['activate'])) {
+    $activity_id = $_GET['activate'];
+    $sql = "UPDATE activity SET status='active' WHERE activity_id='$activity_id'";
+    if ($conn->query($sql) === TRUE) {
+        $message = "เปิดใช้งานกิจกรรมสำเร็จ";
+    } else {
+        $error = "Error: " . $sql . "<br>" . $conn->error;
+    }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -83,17 +112,29 @@ if (isset($_GET['suspend'])) {
             margin: 0;
         }
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
             width: 250px;
             background: #2c3e50;
             color: white;
-            display: flex;
-            flex-direction: column;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
         }
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
+        }
+        .sidebar .menu-group {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1abc9c;
+            padding-bottom: 0;
+        }
+        .sidebar p {
+            margin-bottom: 0;
+            padding-bottom: 5px;
         }
         .sidebar a {
             color: white;
@@ -109,9 +150,11 @@ if (isset($_GET['suspend'])) {
             background: #1abc9c;
         }
         .container {
-            flex: 1;
+            margin-left: 290px;
             padding: 20px;
             background: #ecf0f1;
+            flex: 1;
+            height: auto;
         }
         h2 {
             margin-top: 0;
@@ -171,7 +214,6 @@ if (isset($_GET['suspend'])) {
             text-decoration: none;
             border-radius: 5px;
             margin-right: 5px;
-            background: #3498db;
             text-align: center;
         }
         .btn-edit {
@@ -181,26 +223,61 @@ if (isset($_GET['suspend'])) {
             background: #e74c3c;
         }
         .btn-suspend {
-            background: #e67e22;
+    background: #e67e22; /* สีส้มเข้ม */
+    color: white;
+}
+
+.btn-activate {
+    background: #2ecc71; /* สีเขียว */
+    color: white;
+}
+
+        .sidebar a.btn-logout {
+            background: #e74c3c; 
+            color: white; 
+            padding: 15px 20px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
         }
+        .sidebar a.btn-logout:hover {
+            background: #c0392b;
+        }
+    </style>
     </style>
 </head>
 <body>
 
 <div class="sidebar">
 <h2>เมนู</h2>
-<a href="index.php">ข้อมูลผู้ใช้งาน</a>
-    <a href="sport.php">ข้อมูลกีฬา</a>
-    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
-    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
-    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
-    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+</br>
+    <div class="menu-group">
+        <p>จัดการข้อมูลพื้นฐาน</p>
+    </div>
+    
+    <div class="menu-group">
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
+        <a href="sport.php">ข้อมูลกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+        <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+        <a href="approve.php">อนุมัติสถานที่</a>
+
+    </br>
+        <p>ข้อมูลทั่วไป</p>
+    </div>
+    
+    <div class="menu-group">
+    <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
     <a href="activity.php">ข้อมูลกิจกรรม</a>
     <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
-    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
     
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
 
@@ -217,80 +294,123 @@ if (isset($_GET['suspend'])) {
             <input type="text" id="activity_name" name="activity_name" required>
         </div>
         <div class="form-group">
-            <label for="activity_date">วันที่:</label>
-            <input type="datetime-local" id="activity_date" name="activity_date" required>
-        </div>
+    <label for="activity_date">วันที่:</label>
+    <input type="datetime-local" id="activity_date" name="activity_date" required>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ฟังก์ชันเพื่อจัดรูปแบบวันที่เป็น YYYY-MM-DDTHH:MM
+        function getCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        const activityDateInput = document.getElementById('activity_date');
+        
+        // กำหนดวันที่ปัจจุบันเป็นค่าเริ่มต้น
+        activityDateInput.value = getCurrentDateTime();
+        
+        // กำหนดวันที่ต่ำสุดที่สามารถเลือกได้ (ไม่ให้ต่ำกว่าวันที่ปัจจุบัน)
+        activityDateInput.min = getCurrentDateTime();
+    });
+</script>
+        
         <div class="form-group">
-            <label for="location_id">สถานที่เล่นกีฬา:</label>
-            <select id="location_id" name="location_id" required>
-                <option value="">กรุณาเลือกสถานที่เล่นกีฬา</option>
-                <?php
-                $sql = "SELECT location_id, location_name FROM location";
-                $result = $conn->query($sql);
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='".$row['location_id']."'>".$row['location_name']."</option>";
-                }
-                ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="sport_id">กีฬา:</label>
-            <select id="sport_id" name="sport_id" required>
-                <option value="">กรุณาเลือกข้อมูลกีฬา</option>
-                <?php
-                $sql = "SELECT sport_id, sport_name FROM sport";
-                $result = $conn->query($sql);
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='".$row['sport_id']."'>".$row['sport_name']."</option>";
-                }
-                ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="user_id">ผู้ใช้งาน:</label>
-            <select id="user_id" name="user_id" required>
-                <option value="">กรุณาเลือกข้อมูลผู้ใช้งาน</option>
-                <?php
-                $sql = "SELECT user_id, user_name FROM user_information";
-                $result = $conn->query($sql);
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='".$row['user_id']."'>".$row['user_name']."</option>";
-                }
-                ?>
-            </select>
-        </div>
+    <label for="location_id">สถานที่เล่นกีฬา:</label>
+    <select id="location_id" name="location_id" required>
+        <option value="">กรุณาเลือกสถานที่เล่นกีฬา</option>
+        <?php
+        // ปรับคำสั่ง SQL เพื่อดึงข้อมูลเฉพาะที่มีสถานะ approved และ active
+        $sql = "SELECT location_id, location_name FROM location WHERE status IN ('approved', 'active')";
+        $result = $conn->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            echo "<option value='" . $row['location_id'] . "'>" . $row['location_name'] . "</option>";
+        }
+        ?>
+    </select>
+</div>
+<div class="form-group">
+    <label for="sport_id">กีฬา:</label>
+    <select id="sport_id" name="sport_id" required>
+        <option value="">กรุณาเลือกข้อมูลกีฬา</option>
+        <?php
+        // เพิ่มเงื่อนไขใน SQL query
+        $sql = "SELECT sport_id, sport_name FROM sport WHERE status = 'active'";
+        $result = $conn->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            echo "<option value='".$row['sport_id']."'>".$row['sport_name']."</option>";
+        }
+        ?>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="user_id">สมาชิก:</label>
+    <select id="user_id" name="user_id" required>
+        <option value="">กรุณาเลือกข้อมูลสมาชิก</option>
+        <?php
+        // เพิ่มเงื่อนไขใน SQL query เพื่อแสดงเฉพาะสมาชิกที่มีสถานะ active
+        $sql = "SELECT user_id, user_name FROM user_information WHERE status = 'active'";
+        $result = $conn->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            echo "<option value='".$row['user_id']."'>".$row['user_name']."</option>";
+        }
+        ?>
+    </select>
+</div>
+
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, u.user_name, a.location_id, a.sport_id, a.user_id
-            FROM activity a
-            LEFT JOIN location l ON a.location_id = l.location_id
-            LEFT JOIN sport s ON a.sport_id = s.sport_id
-            LEFT JOIN user_information u ON a.user_id = u.user_id
-            WHERE a.status = 'active'"; //คำสั่ง SQL ที่สร้างขึ้นจะดึงข้อมูลจากตาราง activity (a) โดยใช้การเชื่อมต่อกับตารางอื่นๆ เช่น ตาราง location (l), ตาราง sport (s), และตาราง user_information (u) ผ่าน LEFT JOIN ซึ่งทำให้ได้ข้อมูลรายละเอียดของกิจกรรมที่เกี่ยวข้องกับชื่อสถานที่, ชื่อกีฬา, และชื่อผู้ใช้งาน  //เงื่อนไขที่กำหนด (WHERE a.status = 'active') จะกรองเอาเฉพาะกิจกรรมที่มีสถานะเป็น active เท่านั้น
-    $result = $conn->query($sql);
+$sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, u.user_name, a.location_id, a.sport_id, a.user_id, a.status
+        FROM activity a
+        LEFT JOIN location l ON a.location_id = l.location_id
+        LEFT JOIN sport s ON a.sport_id = s.sport_id
+        LEFT JOIN user_information u ON a.user_id = u.user_id";
+$result = $conn->query($sql);
 
-    if ($result->num_rows > 0) {
-        echo "<table><tr><th>รหัสกิจกรรม</th><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>ผู้ใช้งาน</th><th>การดำเนินการ</th></tr>";
-        while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["activity_id"]."</td><td>".$row["activity_name"]."</td><td>".$row["activity_date"]."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td><td>".$row["user_name"]."</td>
-            <td>
-                <button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\", \"".$row["user_id"]."\")'>แก้ไข</button>
-                <a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>ลบ</a>
-                <a class='btn btn-suspend' href='activity.php?suspend=".$row["activity_id"]."'>ระงับ</a>
-            </td></tr>";
+if ($result->num_rows > 0) {
+    echo "<table><tr><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>สมาชิก</th><th>การดำเนินการ</th></tr>";
+    while($row = $result->fetch_assoc()) {
+        echo "<tr><td>".$row["activity_name"]."</td><td>".formatDateThai($row["activity_date"])."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td><td>".$row["user_name"]."</td><td>";
+        
+        // ปุ่มแก้ไข
+        echo "<button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\", \"".$row["user_id"]."\")'>แก้ไข</button>";
+        
+        // ปุ่มลบ
+        echo "<a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>ลบ</a>";
+        
+        // ปุ่มระงับหรือเปิดใช้งาน
+        if ($row['status'] == 'active') {
+            echo "<a class='btn btn-suspend' href='activity.php?suspend=".$row["activity_id"]."'>ระงับ</a>";
+        } else {
+            echo "<a class='btn btn-activate' href='activity.php?activate=".$row["activity_id"]."'>เปิดใช้งาน</a>";
         }
-        echo "</table>";
-    } else {
-        echo "0 results";
+        
+        echo "</td></tr>";
     }
-    $conn->close();
-    ?>
+    echo "</table>";
+}
+
+
+?>
+
 
     <script>
+
+
+
+
+
     function editActivity(activity_id, activity_name, activity_date, location_id, sport_id, user_id) {
         document.getElementById('activity_id').value = activity_id;
         document.getElementById('activity_name').value = activity_name;

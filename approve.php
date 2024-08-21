@@ -31,25 +31,39 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>อนุมัติสถานที่</title>
-    <style>
+   <style>
         body {
             display: flex;
             min-height: 100vh;
             font-family: Arial, sans-serif;
             margin: 0;
+            background: #f4f7f6;
         }
         .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
+    position: fixed; /* ล็อคแถบด้านข้าง */
+    top: 0;
+    left: 0;
+    height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
+    width: 250px;
+    background: #2c3e50;
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
+}
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
+            color: white;
+        }
+        .sidebar .menu-group {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1abc9c;
+            padding-bottom: 0;
+        }
+        .sidebar p {
+            margin-bottom: 0;
+            padding-bottom: 5px;
         }
         .sidebar a {
             color: white;
@@ -65,35 +79,15 @@ $result = $conn->query($sql);
             background: #1abc9c;
         }
         .container {
-            flex: 1;
+            margin-left: 290px;
             padding: 20px;
             background: #ecf0f1;
+            flex: 1;
+            height: auto;
         }
         h2 {
             margin-top: 0;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-        }
-        .btn-submit {
-            display: inline-block;
-            padding: 10px 20px;
-            color: white;
-            background: #2ecc71;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            color: #2c3e50;
         }
         .message, .error {
             padding: 15px;
@@ -139,25 +133,52 @@ $result = $conn->query($sql);
         .btn-reject {
             background: #e74c3c;
         }
+        .sidebar a.btn-logout {
+    background: #e74c3c; /* สีแดง */
+    color: white; 
+    padding: 15px 20px;
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.sidebar a.btn-logout:hover {
+    background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
+}
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <h2>เมนู</h2>
-    <a href="index.php">ข้อมูลผู้ใช้งาน</a>
-    <a href="sport.php">ข้อมูลกีฬา</a>
-    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
-    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
-    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
-    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
+    </br>
+    <div class="menu-group">
+        <p>จัดการข้อมูลพื้นฐาน</p>
+    </div>
+    <div class="menu-group">
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
+        <a href="sport.php">ข้อมูลกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+        <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+        <a href="approve.php">อนุมัติสถานที่</a>
+
+    </br>
+        <p>ข้อมูลทั่วไป</p>
+    </div>
+    
+    <div class="menu-group">
+    <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
     <a href="activity.php">ข้อมูลกิจกรรม</a>
     <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
     <a href="profile.php">ข้อมูลโปรไฟล์</a>
-    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
+
     
-</div>
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+    
 </div>
 
 <div class="container">
@@ -168,40 +189,44 @@ $result = $conn->query($sql);
     if ($error) { echo "<div class='error'>$error</div>"; }
     ?>
 
-    <table>
-        <tr>
-            <th>ชื่อสถานที่</th>
-            <th>เวลาเปิด - ปิด</th>
-            <th>ละติจูด</th>
-            <th>ลองจิจูด</th>
-            <th>รูปภาพ</th>
-            <th>ประเภทสนามกีฬา</th>
-            <th>การดำเนินการ</th>
-        </tr>
-        <?php
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                echo "<tr>";
-                echo "<td>" . htmlspecialchars($row['location_name']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['location_time']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['latitude']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['longitude']) . "</td>";
-                echo "<td><img src='" . htmlspecialchars($row['location_photo']) . "' width='100'></td>";
-                echo "<td>" . htmlspecialchars($row['type_names']) . "</td>";
-                echo "<td class='btn-container'>
-                        <form method='post' action=''>
-                            <input type='hidden' name='location_id' value='" . htmlspecialchars($row['location_id']) . "'>
-                            <button type='submit' name='approve' class='btn btn-approve'>อนุมัติ</button>
-                            <button type='submit' name='reject' class='btn btn-reject'>ไม่อนุมัติ</button>
-                        </form>
-                      </td>";
-                echo "</tr>";
-            }
-        } else {
-            echo "<tr><td colspan='7'>ไม่มีสถานที่ที่รอการอนุมัติ</td></tr>";
+<table>
+    <tr>
+        <th>ชื่อสถานที่</th>
+        <th>เวลาเปิด - ปิด</th>
+        <th>ละติจูด</th>
+        <th>ลองจิจูด</th>
+        <th>รูปภาพ</th>
+        <th>ประเภทสนามกีฬา</th>
+        <th>การดำเนินการ</th>
+    </tr>
+    <?php
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $latitude = htmlspecialchars($row['latitude']);
+            $longitude = htmlspecialchars($row['longitude']);
+            $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
+            
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['location_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['location_time']) . "</td>";
+            echo "<td><a href='$mapsLink' target='_blank'>" . $latitude . "</a></td>";
+            echo "<td><a href='$mapsLink' target='_blank'>" . $longitude . "</a></td>";
+            echo "<td><img src='" . htmlspecialchars($row['location_photo']) . "' width='100'></td>";
+            echo "<td>" . htmlspecialchars($row['type_names']) . "</td>";
+            echo "<td >
+                    <form method='post' action=''>
+                        <input type='hidden' name='location_id' value='" . htmlspecialchars($row['location_id']) . "'>
+                        <button type='submit' name='approve' class='btn btn-approve'>อนุมัติ</button>
+                        <button type='submit' name='reject' class='btn btn-reject'>ไม่อนุมัติ</button>
+                    </form>
+                  </td>";
+            echo "</tr>";
         }
-        ?>
-    </table>
+    } else {
+        echo "<tr><td colspan='7'>ไม่มีสถานที่ที่รอการอนุมัติ</td></tr>";
+    }
+    ?>
+</table>
 
 </div>
 

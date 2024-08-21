@@ -5,10 +5,12 @@ $message = '';
 $error = '';
 
 // Function to generate the next type_in_location_id
+// Function to generate the next type_in_location_id
 function getNextTypeInLocationId($conn) {
     $sql = "SELECT type_in_location_id FROM sport_type_in_location ORDER BY type_in_location_id DESC LIMIT 1";
     $result = $conn->query($sql);
     $lastId = $result->fetch_assoc();
+    
     if ($lastId) {
         $num = (int)substr($lastId['type_in_location_id'], 1) + 1;
         return 'L' . str_pad($num, 3, '0', STR_PAD_LEFT);
@@ -20,36 +22,59 @@ function getNextTypeInLocationId($conn) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $type_in_location_id = $_POST["type_in_location_id"] ?? '';
     $location_id = $_POST["location_id"] ?? '';
-    $type_id = $_POST["type_id"] ?? '';
+    $type_ids = $_POST["type_id"] ?? []; // This is an array
 
     if (!empty($type_in_location_id)) {
-        // Update existing record
-        $sql = "UPDATE sport_type_in_location SET location_id='$location_id', type_id='$type_id' WHERE type_in_location_id='$type_in_location_id'";
-        if ($conn->query($sql) === TRUE) {
-            $message = "แก้ไขข้อมูลสำเร็จ";
-        } else {
-            $error = "Error: " . $sql . "<br>" . $conn->error;
+        // Update existing records (assuming you need to handle updates to multiple sport types)
+        // First, delete existing types for this location
+        $sql = "DELETE FROM sport_type_in_location WHERE location_id='$location_id'";
+        if ($conn->query($sql) !== TRUE) {
+            $error = "Error: " . $conn->error;
         }
-    } else {
-        // Check for duplicate location_id and type_id
-        $sql = "SELECT * FROM sport_type_in_location WHERE location_id='$location_id' AND type_id='$type_id'";
-        $result = $conn->query($sql);
-        if ($result->num_rows > 0) {
-            $error = "ข้อมูลซ้ำกรุณาเลือกข้อมูลใหม่";
-        } else {
-            // Generate new type_in_location_id
-            $type_in_location_id = getNextTypeInLocationId($conn);
 
-            // Insert new record
+        // Then, insert the new set of types
+        foreach ($type_ids as $type_id) {
             $sql = "INSERT INTO sport_type_in_location (type_in_location_id, location_id, type_id) 
                     VALUES ('$type_in_location_id', '$location_id', '$type_id')";
-            if ($conn->query($sql) === TRUE) {
-                $message = "เพิ่มข้อมูลสำเร็จ";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            } else {
-                $error = "Error: " . $sql . "<br>" . $conn->error;
+            if ($conn->query($sql) !== TRUE) {
+                $error = "Error: " . $conn->error;
+                break; // Exit the loop on error
             }
+        }
+
+        if (!$error) {
+            $message = "แก้ไขข้อมูลสำเร็จ";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
+        }
+    } else {
+        // Insert new records for each selected sport type
+        foreach ($type_ids as $type_id) {
+            // Generate new type_in_location_id for each insertion
+            $type_in_location_id = getNextTypeInLocationId($conn);
+            
+            // Ensure the type_in_location_id is unique
+            while (true) {
+                $sql = "SELECT type_in_location_id FROM sport_type_in_location WHERE type_in_location_id='$type_in_location_id'";
+                $result = $conn->query($sql);
+                if ($result->num_rows == 0) {
+                    break; // ID is unique
+                }
+                $type_in_location_id = getNextTypeInLocationId($conn); // Generate a new ID
+            }
+            
+            $sql = "INSERT INTO sport_type_in_location (type_in_location_id, location_id, type_id) 
+                    VALUES ('$type_in_location_id', '$location_id', '$type_id')";
+            if ($conn->query($sql) !== TRUE) {
+                $error = "Error: " . $conn->error;
+                break; // Exit the loop on error
+            }
+        }
+
+        if (!$error) {
+            $message = "เพิ่มข้อมูลสำเร็จ";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         }
     }
 }
@@ -72,26 +97,40 @@ if (isset($_GET['delete'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้อมูลประเภทสนามกีฬา</title>
+    <title>ข้อมูลสนามกีฬา</title>
     <style>
         body {
             display: flex;
             min-height: 100vh;
             font-family: Arial, sans-serif;
             margin: 0;
+            background: #f4f7f6;
         }
         .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
+    position: fixed; /* ล็อคแถบด้านข้าง */
+    top: 0;
+    left: 0;
+    height: 100%; /* ทำให้แถบด้านข้างสูงเต็มหน้าจอ */
+    width: 250px;
+    background: #2c3e50;
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    overflow-y: auto; /* ถ้ามีเนื้อหาในแถบด้านข้างมาก จะสามารถเลื่อนลงได้ */
+}
         .sidebar h2 {
             text-align: center;
             margin-bottom: 20px;
+            color: white;
+        }
+        .sidebar .menu-group {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1abc9c;
+            padding-bottom: 0;
+        }
+        .sidebar p {
+            margin-bottom: 0;
+            padding-bottom: 5px;
         }
         .sidebar a {
             color: white;
@@ -107,12 +146,15 @@ if (isset($_GET['delete'])) {
             background: #1abc9c;
         }
         .container {
-            flex: 1;
+            margin-left: 290px;
             padding: 20px;
             background: #ecf0f1;
+            flex: 1;
+            height: auto;
         }
         h2 {
             margin-top: 0;
+            color: #2c3e50;
         }
         .form-group {
             margin-bottom: 15px;
@@ -120,6 +162,7 @@ if (isset($_GET['delete'])) {
         .form-group label {
             display: block;
             margin-bottom: 5px;
+            color: #2c3e50;
         }
         .form-group input, .form-group select {
             width: 100%;
@@ -128,7 +171,22 @@ if (isset($_GET['delete'])) {
             border: 1px solid #bdc3c7;
             border-radius: 5px;
         }
-        .btn-submit {
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            border: 1px solid #bdc3c7;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        .btn-submit, .btn-select-all {
             display: inline-block;
             padding: 10px 20px;
             color: white;
@@ -136,6 +194,10 @@ if (isset($_GET['delete'])) {
             border: none;
             border-radius: 5px;
             cursor: pointer;
+        }
+        .btn-select-all {
+            background: #3498db;
+            margin-bottom: 10px;
         }
         .message, .error {
             padding: 15px;
@@ -154,6 +216,7 @@ if (isset($_GET['delete'])) {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background:  #ecf0f1;
         }
         table, th, td {
             border: 1px solid #bdc3c7;
@@ -162,14 +225,16 @@ if (isset($_GET['delete'])) {
             padding: 15px;
             text-align: left;
         }
+        th {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
         .btn {
             display: inline-block;
             padding: 5px 10px;
             color: white;
             text-decoration: none;
             border-radius: 5px;
-            margin-right: 5px;
-            background: #3498db;
             text-align: center;
         }
         .btn-edit {
@@ -178,30 +243,59 @@ if (isset($_GET['delete'])) {
         .btn-delete {
             background: #e74c3c;
         }
+        .btn-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        .sidebar a.btn-logout {
+    background: #e74c3c; /* สีแดง */
+    color: white; 
+    padding: 15px 20px;
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.sidebar a.btn-logout:hover {
+    background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
+}
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-<h2>เมนู</h2>
-<a href="index.php">ข้อมูลผู้ใช้งาน</a>
-    <a href="sport.php">ข้อมูลกีฬา</a>
-    <a href="sport_type.php">ข้อมูลประเภทกีฬา</a>
-    <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
-    <a href="sport_in_type.php">ข้อมูลกีฬาในสนาม</a>
-    <a href="sport_type_in_location.php">ข้อมูลประเภทสนามกีฬา</a>
-    <a href="activity.php">ข้อมูลกิจกรรม</a>
-    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-    <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
-    <a href="profile.php">ข้อมูลโปรไฟล์</a>
-    <a href="approve.php">อนุมัติสถานที่</a>
+    <h2>เมนู</h2>
+</br>
+    <div class="menu-group">
+        <p>จัดการข้อมูลพื้นฐาน</p>
+    </div>
     
+    <div class="menu-group">
+        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
+        <a href="sport.php">ข้อมูลกีฬา</a>
+        <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
+        <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
+        <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
+        <a href="approve.php">อนุมัติสถานที่</a>
+        <br>
+        <p>ข้อมูลทั่วไป</p>
+    </div>
+    
+    <div class="menu-group">
+        <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
+        <a href="activity.php">ข้อมูลกิจกรรม</a>
+        <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+        <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    </div>
+    
+    <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
-</div>
-
 <div class="container">
-    <h2>ข้อมูลประเภทสนามกีฬา</h2>
+    <h2>ข้อมูลสนามกีฬา</h2>
 
     <?php if ($message) { echo "<div class='message'>$message</div>"; } ?>
     <?php if ($error) { echo "<div class='error'>$error</div>"; } ?>
@@ -209,49 +303,51 @@ if (isset($_GET['delete'])) {
     <form method="POST" action="sport_type_in_location.php">
         <input type="hidden" id="type_in_location_id" name="type_in_location_id">
         <div class="form-group">
-            <label for="location_id">สถานที่เล่นกีฬา:</label>
-            <select id="location_id" name="location_id" required>
-                <option value="">กรุณาเลือกสถานที่เล่นกีฬา</option>
-                <?php
-                $sql = "SELECT location_id, location_name FROM location";
-                $result = $conn->query($sql);
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='" . $row['location_id'] . "'>" . $row['location_name'] . "</option>";
-                }
-                ?>
-            </select>
-        </div>
+    <label for="location_id">สถานที่เล่นกีฬา:</label>
+    <select id="location_id" name="location_id" required>
+        <option value="">กรุณาเลือกสถานที่เล่นกีฬา</option>
+        <?php
+        // ปรับคำสั่ง SQL เพื่อดึงข้อมูลเฉพาะที่มีสถานะ approved และ active
+        $sql = "SELECT location_id, location_name FROM location WHERE status IN ('approved', 'active')";
+        $result = $conn->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            echo "<option value='" . $row['location_id'] . "'>" . $row['location_name'] . "</option>";
+        }
+        ?>
+    </select>
+</div>
         <div class="form-group">
-            <label for="type_id">ประเภทกีฬา:</label>
-            <select id="type_id" name="type_id" required>
-                <option value="">กรุณาเลือกประเภทกีฬา</option>
-                <?php
-                $sql = "SELECT type_id, type_name FROM sport_type";
-                $result = $conn->query($sql);
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='" . $row['type_id'] . "'>" . $row['type_name'] . "</option>";
-                }
-                ?>
-            </select>
+        <label for="type_id">ประเภทสนามกีฬา:</label>
+        <button type="button" class="btn-select-all" onclick="toggleCheckboxes()">เลือกทั้งหมด</button>
+        <div class="checkbox-group">
+            <?php
+            $sql = "SELECT type_id, type_name FROM sport_type WHERE status='active'";
+            $result = $conn->query($sql);
+            while ($row = $result->fetch_assoc()) {
+                echo "<label><input type='checkbox' name='type_id[]' value='" . htmlspecialchars($row['type_id']) . "'>" . htmlspecialchars($row['type_name']) . "</label>";
+            }
+            ?>
         </div>
+    </div>
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
 
     <h2>รายการ</h2>
 
     <?php
-    $sql = "SELECT s.type_in_location_id, l.location_name, t.type_name 
+    $sql = "SELECT s.type_in_location_id, l.location_id, l.location_name, GROUP_CONCAT(t.type_name SEPARATOR ', ') as type_names, GROUP_CONCAT(t.type_id SEPARATOR ',') as type_ids
             FROM sport_type_in_location s
             JOIN location l ON s.location_id = l.location_id
-            JOIN sport_type t ON s.type_id = t.type_id";
+            JOIN sport_type t ON s.type_id = t.type_id
+            GROUP BY s.location_id";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
-        echo "<table><tr><th>รหัสประเภทสนามกีฬา</th><th>สถานที่เล่นกีฬา</th><th>ประเภทกีฬา</th><th>การดำเนินการ</th></tr>";
+        echo "<table><tr><th>สถานที่เล่นกีฬา</th><th>ประเภทกีฬา</th><th>การดำเนินการ</th></tr>";
         while($row = $result->fetch_assoc()) {
-            echo "<tr><td>".$row["type_in_location_id"]."</td><td>".$row["location_name"]."</td><td>".$row["type_name"]."</td>
+            echo "<tr><td>".$row["location_name"]."</td><td>".$row["type_names"]."</td>
             <td>
-                <button class='btn btn-edit' onclick='editTypeInLocation(\"".$row["type_in_location_id"]."\", \"".$row["location_name"]."\", \"".$row["type_name"]."\")'>แก้ไข</button>
+               
                 <a class='btn btn-delete' href='sport_type_in_location.php?delete=".$row["type_in_location_id"]."'>ลบ</a>
             </td></tr>";
         }
@@ -263,11 +359,29 @@ if (isset($_GET['delete'])) {
     ?>
 
     <script>
-    function editTypeInLocation(type_in_location_id, location_id, type_id) {
-        document.getElementById('type_in_location_id').value = type_in_location_id;
-        document.getElementById('location_id').value = location_id;
-        document.getElementById('type_id').value = type_id;
-    }
+        
+        function toggleCheckboxes() {
+            const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+        }
+
+        function editTypeInLocation(type_in_location_id, location_id, type_ids) {
+            document.getElementById('type_in_location_id').value = type_in_location_id;
+            document.getElementById('location_id').value = location_id;
+
+            // Clear all checkboxes first
+            const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+
+            // Then, check the ones that match type_ids
+            const typeIdArray = type_ids.split(',');
+            checkboxes.forEach(checkbox => {
+                if (typeIdArray.includes(checkbox.value)) {
+                    checkbox.checked = true;
+                }
+            });
+        }
     </script>
 
 </div>
