@@ -125,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php if ($error): ?>
                     <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
-                <input type="text" class="input-text" name="username" placeholder="User" />
+                <input type="text" class="input-text" name="username" placeholder="Username" />
                 <input type="password" class="input-text" name="password" placeholder="Password" />
                 
                 <button class="button" type="submit">SIGN IN</button>
