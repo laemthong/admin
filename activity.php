@@ -251,8 +251,8 @@ if (isset($_GET['suspend'])) {
 <body>
 
 <div class="sidebar">
-<h2>เมนู</h2>
-</br>
+    <h2>เมนู</h2>
+    <br>
     <div class="menu-group">
         <p>จัดการข้อมูลพื้นฐาน</p>
     </div>
@@ -264,23 +264,22 @@ if (isset($_GET['suspend'])) {
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
         <a href="approve.php">อนุมัติสถานที่</a>
-
-    </br>
+        <br>
         <p>ข้อมูลทั่วไป</p>
     </div>
     
     <div class="menu-group">
-    <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
-    <a href="activity.php">ข้อมูลกิจกรรม</a>
-    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+        
+        <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
+        <a href="activity.php">ข้อมูลกิจกรรม</a>
+        <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+        
+        <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-
     
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
-
 <div class="container">
     <h2>ข้อมูลกิจกรรม</h2>
 
@@ -351,19 +350,20 @@ if (isset($_GET['suspend'])) {
 </div>
 
 <div class="form-group">
-    <label for="user_id">สมาชิก:</label>
+    <label for="user_id">สมาชิก (Creator):</label>
     <select id="user_id" name="user_id" required>
-        <option value="">กรุณาเลือกข้อมูลสมาชิก</option>
+        <option value="">กรุณาเลือก</option>
         <?php
-        // เพิ่มเงื่อนไขใน SQL query เพื่อแสดงเฉพาะสมาชิกที่มีสถานะ active
-        $sql = "SELECT user_id, user_name FROM user_information WHERE status = 'active'";
+        // Adjust the SQL query to pull from the `creator` table
+        $sql = "SELECT creator_id, user_id FROM creator";
         $result = $conn->query($sql);
         while ($row = $result->fetch_assoc()) {
-            echo "<option value='".$row['user_id']."'>".$row['user_name']."</option>";
+            echo "<option value='".$row['creator_id']."'>".$row['user_id']."</option>";
         }
         ?>
     </select>
 </div>
+
 
         <button type="submit" class="btn-submit">บันทึก</button>
     </form>
@@ -371,35 +371,37 @@ if (isset($_GET['suspend'])) {
     <h2>รายการ</h2>
 
     <?php
-$sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, u.user_name, a.location_id, a.sport_id, a.user_id, a.status
-        FROM activity a
-        LEFT JOIN location l ON a.location_id = l.location_id
-        LEFT JOIN sport s ON a.sport_id = s.sport_id
-        LEFT JOIN user_information u ON a.user_id = u.user_id";
+$sql = "SELECT a.activity_id, a.activity_name, a.activity_date, l.location_name, s.sport_name, c.user_id as creator_user_id, a.location_id, a.sport_id, a.user_id, a.status
+FROM activity a
+LEFT JOIN location l ON a.location_id = l.location_id
+LEFT JOIN sport s ON a.sport_id = s.sport_id
+LEFT JOIN creator c ON a.user_id = c.creator_id"; // Use the `creator` table here
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-    echo "<table><tr><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>สมาชิก</th><th>การดำเนินการ</th></tr>";
-    while($row = $result->fetch_assoc()) {
-        echo "<tr><td>".$row["activity_name"]."</td><td>".formatDateThai($row["activity_date"])."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td><td>".$row["user_name"]."</td><td>";
-        
-        // ปุ่มแก้ไข
-        echo "<button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\", \"".$row["user_id"]."\")'>แก้ไข</button>";
-        
-        // ปุ่มลบ
-        echo "<a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>ลบ</a>";
-        
-        // ปุ่มระงับหรือเปิดใช้งาน
-        if ($row['status'] == 'active') {
-            echo "<a class='btn btn-suspend' href='activity.php?suspend=".$row["activity_id"]."'>ระงับ</a>";
-        } else {
-            echo "<a class='btn btn-activate' href='activity.php?activate=".$row["activity_id"]."'>เปิดใช้งาน</a>";
-        }
-        
-        echo "</td></tr>";
-    }
-    echo "</table>";
+echo "<table><tr><th>ชื่อ</th><th>วันที่</th><th>สถานที่เล่นกีฬา</th><th>กีฬา</th><th>Creator</th><th>การดำเนินการ</th></tr>";
+while($row = $result->fetch_assoc()) {
+echo "<tr><td>".$row["activity_name"]."</td><td>".formatDateThai($row["activity_date"])."</td><td>".$row["location_name"]."</td><td>".$row["sport_name"]."</td><td>".$row["creator_user_id"]."</td><td>";
+
+// Edit button
+echo "<button class='btn btn-edit' onclick='editActivity(\"".$row["activity_id"]."\", \"".$row["activity_name"]."\", \"".$row["activity_date"]."\", \"".$row["location_id"]."\", \"".$row["sport_id"]."\", \"".$row["user_id"]."\")'>แก้ไข</button>";
+
+// Delete button
+echo "<a class='btn btn-delete' href='activity.php?delete=".$row["activity_id"]."'>ลบ</a>";
+
+// Suspend or Activate button
+if ($row['status'] == 'active') {
+    echo "<a class='btn btn-suspend' href='activity.php?suspend=".$row["activity_id"]."'>ระงับ</a>";
+} else {
+    echo "<a class='btn btn-activate' href='activity.php?activate=".$row["activity_id"]."'>เปิดใช้งาน</a>";
 }
+
+echo "</td></tr>";
+}
+echo "</table>";
+}
+
+
 
 
 ?>
@@ -411,14 +413,15 @@ if ($result->num_rows > 0) {
 
 
 
-    function editActivity(activity_id, activity_name, activity_date, location_id, sport_id, user_id) {
-        document.getElementById('activity_id').value = activity_id;
-        document.getElementById('activity_name').value = activity_name;
-        document.getElementById('activity_date').value = activity_date;
-        document.getElementById('location_id').value = location_id;
-        document.getElementById('sport_id').value = sport_id;
-        document.getElementById('user_id').value = user_id;
-    }
+function editActivity(activity_id, activity_name, activity_date, location_id, sport_id, user_id) {
+    document.getElementById('activity_id').value = activity_id;
+    document.getElementById('activity_name').value = activity_name;
+    document.getElementById('activity_date').value = activity_date;
+    document.getElementById('location_id').value = location_id;
+    document.getElementById('sport_id').value = sport_id;
+    document.getElementById('user_id').value = user_id;  // This should now reference the creator_id
+}
+
     </script>
 
 </div>

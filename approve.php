@@ -17,12 +17,13 @@ if (isset($_POST['approve']) || isset($_POST['reject'])) { //ส่งข้อ�
     }
 }
         //ใช้ GROUP_CONCAT เพื่อรวมชื่อของประเภทกีฬา (type_name) เป็นสตริงที่คั่นด้วยเครื่องหมาย ,
-$sql = "SELECT l.*, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
+        $sql = "SELECT l.*, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
         FROM location l 
         LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id) > 0
         WHERE l.status='pending'
         GROUP BY l.location_id";  
 $result = $conn->query($sql);
+
 ?>
 
 <!DOCTYPE html>
@@ -150,13 +151,13 @@ $result = $conn->query($sql);
     </style>
 </head>
 <body>
-
 <div class="sidebar">
     <h2>เมนู</h2>
-    </br>
+    <br>
     <div class="menu-group">
         <p>จัดการข้อมูลพื้นฐาน</p>
     </div>
+    
     <div class="menu-group">
         <a href="user.php">ข้อมูลผู้ใช้งาน</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
@@ -164,18 +165,18 @@ $result = $conn->query($sql);
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
         <a href="approve.php">อนุมัติสถานที่</a>
-
-    </br>
+        <br>
         <p>ข้อมูลทั่วไป</p>
     </div>
     
     <div class="menu-group">
-    <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
-    <a href="activity.php">ข้อมูลกิจกรรม</a>
-    <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-    <a href="profile.php">ข้อมูลโปรไฟล์</a>
+        
+        <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
+        <a href="activity.php">ข้อมูลกิจกรรม</a>
+        <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+        
+        <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-
     
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
@@ -192,7 +193,7 @@ $result = $conn->query($sql);
 <table>
     <tr>
         <th>ชื่อสถานที่</th>
-        <th>เวลาเปิด - ปิด</th>
+        <th>วันและเวลาเปิด - ปิด</th>
         <th>ละติจูด</th>
         <th>ลองจิจูด</th>
         <th>รูปภาพ</th>
@@ -205,15 +206,35 @@ $result = $conn->query($sql);
             $latitude = htmlspecialchars($row['latitude']);
             $longitude = htmlspecialchars($row['longitude']);
             $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
-            
+
+            // Convert the stored location_day back to readable format
+            $days = htmlspecialchars($row["location_day"]);
+            $daysArray = explode(',', $days);
+            $daysReadable = array_map(function($day) {
+                switch($day) {
+                    case '0': return 'อาทิตย์';
+                    case '1': return 'จันทร์';
+                    case '2': return 'อังคาร';
+                    case '3': return 'พุธ';
+                    case '4': return 'พฤหัสบดี';
+                    case '5': return 'ศุกร์';
+                    case '6': return 'เสาร์';
+                    default: return '';
+                }
+            }, $daysArray);
+            $daysStr = implode(', ', $daysReadable);
+
+            // Combine days and time into one string
+            $dayTimeStr = $daysStr . " " . htmlspecialchars($row['location_time']);
+
             echo "<tr>";
             echo "<td>" . htmlspecialchars($row['location_name']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['location_time']) . "</td>";
+            echo "<td>" . $dayTimeStr . "</td>";
             echo "<td><a href='$mapsLink' target='_blank'>" . $latitude . "</a></td>";
             echo "<td><a href='$mapsLink' target='_blank'>" . $longitude . "</a></td>";
             echo "<td><img src='" . htmlspecialchars($row['location_photo']) . "' width='100'></td>";
             echo "<td>" . htmlspecialchars($row['type_names']) . "</td>";
-            echo "<td >
+            echo "<td>
                     <form method='post' action=''>
                         <input type='hidden' name='location_id' value='" . htmlspecialchars($row['location_id']) . "'>
                         <button type='submit' name='approve' class='btn btn-approve'>อนุมัติ</button>
@@ -227,6 +248,7 @@ $result = $conn->query($sql);
     }
     ?>
 </table>
+
 
 </div>
 

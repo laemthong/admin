@@ -4,94 +4,95 @@ include 'config.php';
 $message = '';
 $error = '';
 
-// Function to generate the next numeric location_id
 function getNextLocationId($conn) {
     $sql = "SELECT location_id FROM location ORDER BY location_id DESC LIMIT 1";
     $result = $conn->query($sql);
     $lastId = $result->fetch_assoc();
     if ($lastId) {
-        $num = (int)$lastId['location_id'] + 1;
-        return $num;
+        return (int)$lastId['location_id'] + 1;
     } else {
         return 1;
     }
 }
 
-// Handle delete request
 if (isset($_GET['delete'])) {
     $location_id = $_GET['delete'];
-    $sql = "DELETE FROM location WHERE location_id='$location_id'";
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare("DELETE FROM location WHERE location_id=?");
+    $stmt->bind_param("i", $location_id);
+    if ($stmt->execute()) {
         $message = "ลบข้อมูลสำเร็จ";
     } else {
-        $error = "เกิดข้อผิดพลาด: " . $conn->error;
+        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
     }
+    $stmt->close();
 }
 
-// Handle suspend request
 if (isset($_GET['suspend'])) {
     $location_id = $_GET['suspend'];
-    $sql = "UPDATE location SET status='inactive' WHERE location_id='$location_id'";
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare("UPDATE location SET status='inactive' WHERE location_id=?");
+    $stmt->bind_param("i", $location_id);
+    if ($stmt->execute()) {
         $message = "ระงับข้อมูลสำเร็จ";
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
+        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
     }
+    $stmt->close();
 }
 
-// Handle activate request
 if (isset($_GET['activate'])) {
     $location_id = $_GET['activate'];
-    $sql = "UPDATE location SET status='active' WHERE location_id='$location_id'";
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare("UPDATE location SET status='active' WHERE location_id=?");
+    $stmt->bind_param("i", $location_id);
+    if ($stmt->execute()) {
         $message = "เปิดใช้งานข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
     } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
+        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
     }
+    $stmt->close();
 }
 
-// Handle sport_type suspend and reactivate requests
 if (isset($_GET['suspend_sport_type'])) {
     $type_id = $_GET['suspend_sport_type'];
-    $sql = "UPDATE sport_type SET status='inactive' WHERE type_id='$type_id'";
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare("UPDATE sport_type SET status='inactive' WHERE type_id=?");
+    $stmt->bind_param("i", $type_id);
+    if ($stmt->execute()) {
         $message = "ระงับข้อมูลสำเร็จ";
     } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
+        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
     }
+    $stmt->close();
 }
 
 if (isset($_GET['reactivate_sport_type'])) {
     $type_id = $_GET['reactivate_sport_type'];
-    $sql = "UPDATE sport_type SET status='active' WHERE type_id='$type_id'";
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare("UPDATE sport_type SET status='active' WHERE type_id=?");
+    $stmt->bind_param("i", $type_id);
+    if ($stmt->execute()) {
         $message = "เปิดใช้งานข้อมูลสำเร็จ";
     } else {
-        $error = "Error: " . $sql . "<br>" . $conn->error;
+        $error = "เกิดข้อผิดพลาด: " . $stmt->error;
     }
+    $stmt->close();
 }
 
-// Function to get active sport types
 function getActiveSportTypes($conn) {
     $sql = "SELECT type_id, type_name FROM sport_type WHERE status='active'";
-    $result = $conn->query($sql);
-    return $result;
+    return $conn->query($sql);
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $location_id = $_POST["location_id"] ?? '';
     $location_name = $_POST["location_name"] ?? '';
-    $location_time = $_POST["location_time"] ?? '';
+    $location_time = $_POST["opening_time"] . ' - ' . $_POST["closing_time"];
     $latitude = !empty($_POST["latitude"]) ? $_POST["latitude"] : null;
     $longitude = !empty($_POST["longitude"]) ? $_POST["longitude"] : null;
     $type_ids = $_POST["type_id"] ?? [];
-    $type_ids_str = implode(',', $type_ids); // Convert array to comma-separated string
+    $type_ids_str = implode(',', $type_ids);
+    $selected_days = $_POST["day_selection"] ?? [];
+    $days_str = implode(',', $selected_days);
 
-    // Upload photo
     $location_photo = $_FILES["location_photo"]["name"] ?? '';
     $target_dir = "uploads/";
     $target_file = $target_dir . basename($location_photo);
@@ -104,17 +105,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (!$error && !is_null($latitude) && !is_null($longitude)) {
         if (!empty($location_id)) {
-            // Update existing record
-            $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, latitude=?, longitude=?, type_id=? WHERE location_id=?");
-            $stmt->bind_param("sssssss", $location_name, $location_time, $target_file, $latitude, $longitude, $type_ids_str, $location_id);
+            $stmt = $conn->prepare("UPDATE location SET location_name=?, location_time=?, location_photo=?, latitude=?, longitude=?, type_id=?, location_day=? WHERE location_id=?");
+            $stmt->bind_param("sssssssi", $location_name, $location_time, $target_file, $latitude, $longitude, $type_ids_str, $days_str, $location_id);
             $stmt->execute();
         } else {
-            // Generate new location_id
             $location_id = getNextLocationId($conn);
-
-            // Insert new record
-            $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, latitude, longitude, type_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
-            $stmt->bind_param("sssssss", $location_id, $location_name, $location_time, $target_file, $latitude, $longitude, $type_ids_str);
+            $stmt = $conn->prepare("INSERT INTO location (location_id, location_name, location_time, location_photo, latitude, longitude, type_id, location_day, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+            $stmt->bind_param("ssssssss", $location_id, $location_name, $location_time, $target_file, $latitude, $longitude, $type_ids_str, $days_str);
             $stmt->execute();
         }
         if ($stmt->error) {
@@ -129,6 +126,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Latitude or Longitude cannot be empty.";
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -329,6 +328,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .sidebar a.btn-logout:hover {
             background: #c0392b; /* สีแดงเข้มขึ้นเมื่อเมาส์อยู่เหนือ */
         }
+        .time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.time-inputs input[type="time"] {
+    width: auto; /* Adjusts the width based on content */
+}
+
     </style>
     <script>
         function toggleCheckboxes() {
@@ -373,17 +382,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     
     <div class="menu-group">
+        
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
         <a href="activity.php">ข้อมูลกิจกรรม</a>
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+        
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
-
     
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
-
 <div class="container">
     <h2>ข้อมูลสถานที่เล่นกีฬา</h2>
 
@@ -397,22 +406,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" id="location_name" name="location_name" required>
         </div>
         <div class="form-group">
-            <label for="day_selection">วัน:</label>
-            <select id="day_selection" name="day_selection" onchange="setDefaultTime()">
-                <option value="">กรุณาเลือกวัน</option>
-                <option value="1">จันทร์</option>
-                <option value="2">อังคาร</option>
-                <option value="3">พุธ</option>
-                <option value="4">พฤหัสบดี</option>
-                <option value="5">ศุกร์</option>
-                <option value="6">เสาร์</option>
-                <option value="0">อาทิตย์</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="location_time">เวลาเปิด - ปิด:</label>
-            <input type="text" id="location_time" name="location_time" required>
-        </div>
+    <label for="day_selection">วัน:</label>
+    <div class="checkbox-group">
+        <label><input type="checkbox" name="day_selection[]" value="1" > จันทร์</label>
+        <label><input type="checkbox" name="day_selection[]" value="2" > อังคาร</label>
+        <label><input type="checkbox" name="day_selection[]" value="3" > พุธ</label>
+        <label><input type="checkbox" name="day_selection[]" value="4" > พฤหัสบดี</label>
+        <label><input type="checkbox" name="day_selection[]" value="5" > ศุกร์</label>
+        <label><input type="checkbox" name="day_selection[]" value="6" > เสาร์</label>
+        <label><input type="checkbox" name="day_selection[]" value="0" > อาทิตย์</label>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="location_time">เวลาเปิด - ปิด:</label>
+    <div class="time-inputs">
+        <input type="time" id="opening_time" name="opening_time" required>
+        <span> - </span>
+        <input type="time" id="closing_time" name="closing_time" required>
+    </div>
+</div>
+
         <div class="form-group">
             <label for="location_photo">รูปภาพ:</label>
             <input type="file" id="location_photo" name="location_photo" accept="image/*" onchange="previewFile()">
@@ -451,56 +465,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h2>รายการ</h2>
 
     <?php
-     $sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.latitude, l.longitude, l.status, l.type_id, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
-     FROM location l 
-     LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id)
-     GROUP BY l.location_id";
+$sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.latitude, l.longitude, l.status, l.location_day, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
+FROM location l 
+LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id)
+WHERE l.status = 'approved'
+GROUP BY l.location_id";
 
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
- echo "<table><tr><th>ชื่อ</th><th>เวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>การดำเนินการ</th></tr>";
- while($row = $result->fetch_assoc()) {
-     $latitude = htmlspecialchars($row["latitude"]);
-     $longitude = htmlspecialchars($row["longitude"]);
-     $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
-     echo "<tr><td>".htmlspecialchars($row["location_name"])."</td><td>".htmlspecialchars($row["location_time"])."</td><td><img src='".htmlspecialchars($row["location_photo"])."' alt='รูปภาพ' width='100'></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($latitude)."</a></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($longitude)."</a></td><td>".htmlspecialchars($row["type_names"])."</td><td>";
+  echo "<table><tr><th>ชื่อ</th><th>วันและเวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>การดำเนินการ</th></tr>";
+        while($row = $result->fetch_assoc()) {
+            $latitude = htmlspecialchars($row["latitude"]);
+            $longitude = htmlspecialchars($row["longitude"]);
+            $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
 
-     echo "<button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["latitude"])."\", \"".htmlspecialchars($row["longitude"])."\", \"".htmlspecialchars($row["type_id"])."\")'>แก้ไข</button>";
-     echo "<a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>";
-     
-     if ($row["status"] == 'inactive') {
-         echo "<a class='btn btn-reactivate' href='location.php?activate=".htmlspecialchars($row["location_id"])."'>เปิดใช้งาน</a>";
-     } else {
-         echo "<a class='btn btn-suspend' href='location.php?suspend=".htmlspecialchars($row["location_id"])."'>ระงับ</a>";
-     }
-     echo "</td></tr>";
- }
- echo "</table>";
-} else {
- echo "ไม่มีข้อมูล";
-}
+            // Convert the stored location_day back to readable format
+        $days = htmlspecialchars($row["location_day"]);
+        $daysArray = explode(',', $days);
+        $daysReadable = array_map(function($day) {
+            switch($day) {
+                case '0': return 'อาทิตย์';
+                case '1': return 'จันทร์';
+                case '2': return 'อังคาร';
+                case '3': return 'พุธ';
+                case '4': return 'พฤหัสบดี';
+                case '5': return 'ศุกร์';
+                case '6': return 'เสาร์';
+                default: return '';
+            }
+        }, $daysArray);
+        $daysStr = implode(', ', $daysReadable);
+
+        // Combine days and time into one string
+        $dayTimeStr = $daysStr . " " . htmlspecialchars($row["location_time"]);
+
+            echo "<tr><td>".htmlspecialchars($row["location_name"])."</td> <td>".$dayTimeStr."</td><td><img src='".htmlspecialchars($row["location_photo"])."' alt='รูปภาพ' width='100'></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($latitude)."</a></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($longitude)."</a></td><td>".htmlspecialchars($row["type_names"])."</td><td>";
+    
+            // ปุ่มแก้ไขและลบยังคงเหมือนเดิม
+            echo "<button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\")'>แก้ไข</button>";
+            echo "<a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>";
+            
+            // เปลี่ยนปุ่มระงับเป็นเปิดใช้งานถ้าสถานะเป็น inactive
+            if (isset($row["status"]) && $row["status"] == 'inactive') {
+                echo "<a class='btn btn-reactivate' href='location.php?activate=".htmlspecialchars($row["location_id"])."'>เปิดใช้งาน</a>";
+            } else {
+                echo "<a class='btn btn-suspend' href='location.php?suspend=".htmlspecialchars($row["location_id"])."'>ระงับ</a>";
+            }
+            
+            echo "</td></tr>";
+        }
+        echo "</table>";
+    } else {
+        echo "ไม่มีข้อมูล";
+    }
+    
     $conn->close();
     ?>
 
     <script>
-        function setDefaultTime() {
-            const locationTimeInput = document.getElementById('location_time');
-            const daySelection = document.getElementById('day_selection').value;
-
-            let timeString = '';
-
-            if (daySelection >= 1 && daySelection <= 5) {
-                // Monday to Friday
-                timeString = '05:00 - 21:00';
-            } else if (daySelection == 0 || daySelection == 6) {
-                // Saturday and Sunday
-                timeString = '06:00 - 20:30';
-            }
-
-            locationTimeInput.value = timeString;
-        }
-
         function previewFile() {
             const preview = document.getElementById('location_photo_preview');
             const previewContainer = document.getElementById('location_photo_preview_container');
@@ -530,19 +553,30 @@ if ($result->num_rows > 0) {
             preview.src = '';
         }
 
-        function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids) {
-            document.getElementById('location_id').value = location_id;
-            document.getElementById('location_name').value = location_name;
-            document.getElementById('location_time').value = location_time;
-            document.getElementById('latitude').value = latitude;
-            document.getElementById('longitude').value = longitude;
+        function toggleCheckboxes() {
+        const checkboxes = document.querySelectorAll('.checkbox-group input[name="type_id[]"]');
+        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+        checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+    }
 
-            const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
-            const typeIdArray = type_ids.split(','); // Convert the string to an array
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = typeIdArray.includes(checkbox.value);
-            });
+    function toggleAllDays() {
+        const checkboxes = document.querySelectorAll('.checkbox-group input[name="day_selection[]"]');
+        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+        checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+    }
 
+    function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids) {
+        document.getElementById('location_id').value = location_id;
+        document.getElementById('location_name').value = location_name;
+        document.getElementById('location_time').value = location_time;
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
+        
+        const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+        const typeIdArray = type_ids.split(','); // Convert the string to an array
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = typeIdArray.includes(checkbox.value);
+        });
             if (location_photo) {
                 document.getElementById('location_photo_preview').src = location_photo;
                 document.getElementById('location_photo_preview_container').style.display = 'block'; // แสดงรูปที่มีอยู่ก่อน
