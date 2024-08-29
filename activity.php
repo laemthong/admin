@@ -350,7 +350,7 @@ if (isset($_GET['suspend'])) {
 </div>
 
 <div class="form-group">
-    <label for="user_id">สมาชิก (Creator):</label>
+    <label for="user_id">ผู้สร้างกิจกรรม:</label>
     <select id="user_id" name="user_id" required>
         <option value="">กรุณาเลือก</option>
         <?php

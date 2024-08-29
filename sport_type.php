@@ -293,14 +293,17 @@ if (isset($_GET['reactivate'])) {
     </div>
     
     <div class="menu-group">
+        
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
         <a href="activity.php">ข้อมูลกิจกรรม</a>
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+        
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
+    
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
+    
 </div>
-
 <div class="container">
     <h2>ข้อมูลประเภทสนามกีฬา</h2>
 

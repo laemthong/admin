@@ -265,9 +265,11 @@ if (isset($_GET['delete'])) {
     </div>
     
     <div class="menu-group">
+        
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
         <a href="activity.php">ข้อมูลกิจกรรม</a>
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
+
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
     </div>
     
