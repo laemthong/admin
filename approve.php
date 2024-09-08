@@ -164,7 +164,6 @@ $result = $conn->query($sql);
         <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
-        <a href="approve.php">อนุมัติสถานที่</a>
         <br>
         <p>ข้อมูลทั่วไป</p>
     </div>
@@ -174,13 +173,18 @@ $result = $conn->query($sql);
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
         <a href="activity.php">ข้อมูลกิจกรรม</a>
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-        
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    </br>
+    <p>การอนุมัติ</p>
     </div>
-    
+    <div class="menu-group">
+        
+    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
+
 
 <div class="container">
     <h2>อนุมัติสถานที่</h2>
@@ -203,11 +207,13 @@ $result = $conn->query($sql);
     <?php
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
+
+            ////สร้างลิงก์ไปยัง Google Maps โดยใช้ค่าละติจูดและลองจิจูดที่ดึงมาจากฐานข้อมูล
             $latitude = htmlspecialchars($row['latitude']);
             $longitude = htmlspecialchars($row['longitude']);
             $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
 
-            // Convert the stored location_day back to readable format
+            //แปลงรหัสวัน (0-6) ที่เก็บในฐานข้อมูลให้เป็นชื่อวันภาษาไทย (เช่น 0 แปลงเป็น อาทิตย์) แล้วรวมเข้ากับเวลาที่เปิด-ปิด
             $days = htmlspecialchars($row["location_day"]);
             $daysArray = explode(',', $days);
             $daysReadable = array_map(function($day) {
@@ -255,6 +261,3 @@ $result = $conn->query($sql);
 </body>
 </html>
 
-<?php
-$conn->close();
-?>

@@ -4,8 +4,11 @@ include 'config.php';
 $message = '';
 $error = '';
 
-// Insert or Update user
+// การร้องขอ (Request) นั้นเป็นแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+
+    //การดึงข้อมูลจากฟอร์มที่ถูกส่งเข้ามา โดย edit_user_id ใช้เพื่อตรวจสอบว่ากำลังทำการแก้ไขข้อมูลผู้ใช้เดิมหรือเป็นการเพิ่มข้อมูลใหม่
     $edit_user_id = $_POST['edit_user_id'] ?? '';
     $user_id = $_POST['user_id'];
     $user_email = $_POST['user_email'];
@@ -14,12 +17,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_age = $_POST['user_age'];
     $user_photo = $_FILES['user_photo']['name'];
 
-    // Check for duplicate email
+
+
+    // ตรวจสอบว่าอีเมลที่ผู้ใช้กรอกเข้ามาซ้ำกับอีเมลที่มีอยู่ในฐานข้อมูลหรือไม่ 
     $sql = "SELECT * FROM user_information WHERE user_email='$user_email' AND user_id != '$edit_user_id'";
     $result = $conn->query($sql);
     if ($result->num_rows > 0) {
         $error = "อีเมลนี้มีการใช้งานแล้ว กรุณากรอกอีเมลใหม่";
     } else {
+
+        //กำหนดโฟลเดอร์ที่ใช้เก็บไฟล์อัปโหลด และสร้างชื่อไฟล์ที่ต้องการอัปโหลด จากนั้นทำการอัปโหลดรูปภาพไปยังโฟลเดอร์ที่กำหนด
         $upload_dir = 'uploads/';
         $upload_file = $upload_dir . basename($user_photo);
 
@@ -28,7 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             try {
                 if (!empty($edit_user_id)) {
-                    // Update user
+
+                    // อัปเดตข้อมูลผู้ใช้ที่มี user_id ตรงกับ edit_user_id ในฐานข้อมูลด้วยข้อมูลใหม่จากฟอร์ม
                     $sql = "UPDATE user_information 
                             SET user_email='$user_email', user_pass='$user_pass', user_name='$user_name', user_age='$user_age', user_photo='$upload_file'
                             WHERE user_id='$edit_user_id'";
@@ -62,6 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // รีเฟรชหน้าเพื่อป้องกันการแจ้งเตือนการส่งฟอร์มซ้ำ
                 header("Location: " . $_SERVER['PHP_SELF']);
+                
                 exit();
             } catch (Exception $e) {
                 $conn->rollback();
@@ -300,6 +309,8 @@ if (isset($_GET['reactivate'])) {
         }
     </style>
     <script>
+
+        //ฟังก์ชัน previewFile() ใช้สำหรับแสดงตัวอย่างรูปภาพที่เลือกอัปโหลด
         function previewFile() {
             const preview = document.getElementById('user_photo_preview');
             const previewContainer = document.getElementById('user_photo_preview_container');
@@ -311,11 +322,12 @@ if (isset($_GET['reactivate'])) {
                 previewContainer.style.display = 'block';
             }, false);
 
-            if (file) {
+            if (file) {  //ถ้ามีไฟล์รูปภาพที่ถูกเลือก, จะอ่านไฟล์นั้นเป็น Data URL (รูปแบบข้อมูลที่สามารถแสดงผลเป็นรูปภาพได้)
                 reader.readAsDataURL(file);
             }
         }
-
+        
+        //ฟังก์ชัน removePhoto() ใช้สำหรับลบรูปภาพที่แสดงในตัวอย่างและรีเซ็ตการเลือกไฟล์
         function removePhoto() {
             const preview = document.getElementById('user_photo_preview');
             const previewContainer = document.getElementById('user_photo_preview_container');
@@ -325,7 +337,8 @@ if (isset($_GET['reactivate'])) {
             previewContainer.style.display = 'none';
             preview.src = '';
         }
-
+        
+        //ฟังก์ชัน editUser() ใช้สำหรับดึงข้อมูลผู้ใช้ที่ต้องการแก้ไข และแสดงข้อมูลนั้นในฟอร์ม รวมถึงแสดงตัวอย่างรูปภาพหากมี
         function editUser(user_id) {
             fetch('get_user.php?user_id=' + user_id)
             .then(response => response.json())
@@ -362,7 +375,6 @@ if (isset($_GET['reactivate'])) {
         <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
-        <a href="approve.php">อนุมัติสถานที่</a>
         <br>
         <p>ข้อมูลทั่วไป</p>
     </div>
@@ -372,10 +384,14 @@ if (isset($_GET['reactivate'])) {
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
         <a href="activity.php">ข้อมูลกิจกรรม</a>
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-        
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    </br>
+    <p>การอนุมัติ</p>
     </div>
-    
+    <div class="menu-group">
+        
+    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
@@ -431,18 +447,19 @@ if (isset($_GET['reactivate'])) {
 
     if ($result->num_rows > 0) {
         echo "<table><tr><th>ชื่อสมาชิก</th><th>อีเมล</th><th>ชื่อ - สกุล</th><th>วันเกิด</th><th>รูปภาพ</th><th>การดำเนินการ</th></tr>";
-        while($row = $result->fetch_assoc()) {
+        while($row = $result->fetch_assoc()) { //ดึงข้อมูลแต่ละแถวจากผลลัพธ์มาเป็นอาเรย์
             $formatted_date = date("d/m/Y", strtotime($row["user_age"]));
             echo "<tr><td>".$row["user_id"]."</td><td>".$row["user_email"]."</td><td>".$row["user_name"]."</td><td>".$formatted_date."</td><td><img src='".$row["user_photo"]."' width='100'></td>
             <td>
                 <button class='btn btn-edit' onclick='editUser(\"".$row["user_id"]."\")'>แก้ไข</button>
                 <a class='btn btn-delete' href='?delete=".$row['user_id']."'>ลบ</a>";
             
-            if ($row['status'] == 'active') {
-                echo "<a class='btn btn-suspend' href='?suspend=".$row['user_id']."'>ระงับ</a>";
-            } else {
-                echo "<a class='btn btn-reactivate' href='?reactivate=".$row['user_id']."'>เปิดใช้งาน</a>";
-            }
+                if ($row['status'] == 'active') {
+                    echo "<a class='btn btn-suspend' href='?suspend=".$row['user_id']."'>ระงับ</a>";
+                } else {
+                    echo "<a class='btn btn-reactivate' href='?reactivate=".$row['user_id']."'>เปิดใช้งาน</a>";
+                }
+                
 
             echo "</td></tr>";
         }

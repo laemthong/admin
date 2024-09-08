@@ -211,6 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
                 </style>
                <script>
+
+                    //togglePasswordVisibility(id): ใช้ในการสลับการแสดง/ซ่อนรหัสผ่าน
         function togglePasswordVisibility(id) {
             const passwordInput = document.getElementById(id);
             const toggleIcon = document.getElementById(id + '-toggle');
@@ -224,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 toggleIcon.classList.add('fa-eye');
             }
         }
-
+                //validatePassword(): ใช้ในการตรวจสอบความถูกต้องของรหัสผ่านตามเงื่อนไขที่กำหนด
         function validatePassword() {
             const password = document.getElementById('password');
             const message = document.getElementById('message');
@@ -242,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 message.textContent = 'รหัสผ่านของคุณต้องมีความยาว 8 ตัวอักษรและมีทั้งตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข';
             }
         }
-
+                //validatePasswordMatch(): ใช้ในการตรวจสอบว่ารหัสผ่านและการยืนยันรหัสผ่านตรงกันหรือไม่
         function validatePasswordMatch() {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;

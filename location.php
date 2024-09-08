@@ -17,6 +17,38 @@ function getNextLocationId($conn) {
 
 if (isset($_GET['delete'])) {
     $location_id = $_GET['delete'];
+    
+    // ลบข้อมูลจากตาราง sport_type_in_location ที่อ้างอิง location_id นี้
+    $stmt = $conn->prepare("DELETE FROM sport_type_in_location WHERE location_id=?");
+    $stmt->bind_param("i", $location_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // ลบข้อมูลจากตาราง member_in_activity ที่อ้างอิง activity_id ที่เกี่ยวข้องกับ location นี้
+    $stmt = $conn->prepare("DELETE FROM member_in_activity WHERE activity_id IN (SELECT activity_id FROM activity WHERE location_id=?)");
+    $stmt->bind_param("i", $location_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // ลบข้อมูลจากตาราง hashtags_in_activities ที่อ้างอิง activity_id ที่เกี่ยวข้องกับ location นี้
+    $stmt = $conn->prepare("DELETE FROM hashtags_in_activities WHERE activity_id IN (SELECT activity_id FROM activity WHERE location_id=?)");
+    $stmt->bind_param("i", $location_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // ลบข้อมูลจากตาราง creator ที่อ้างอิง activity_id ที่เกี่ยวข้องกับ location นี้
+    $stmt = $conn->prepare("DELETE FROM creator WHERE activity_id IN (SELECT activity_id FROM activity WHERE location_id=?)");
+    $stmt->bind_param("i", $location_id);
+    $stmt->execute();
+    $stmt->close();
+    
+    // ลบข้อมูลจากตาราง activity ที่อ้างอิง location_id นี้
+    $stmt = $conn->prepare("DELETE FROM activity WHERE location_id=?");
+    $stmt->bind_param("i", $location_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // ลบข้อมูลจากตาราง location
     $stmt = $conn->prepare("DELETE FROM location WHERE location_id=?");
     $stmt->bind_param("i", $location_id);
     if ($stmt->execute()) {
@@ -27,14 +59,13 @@ if (isset($_GET['delete'])) {
     $stmt->close();
 }
 
+
 if (isset($_GET['suspend'])) {
     $location_id = $_GET['suspend'];
     $stmt = $conn->prepare("UPDATE location SET status='inactive' WHERE location_id=?");
     $stmt->bind_param("i", $location_id);
     if ($stmt->execute()) {
         $message = "ระงับข้อมูลสำเร็จ";
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit();
     } else {
         $error = "เกิดข้อผิดพลาด: " . $stmt->error;
     }
@@ -43,7 +74,7 @@ if (isset($_GET['suspend'])) {
 
 if (isset($_GET['activate'])) {
     $location_id = $_GET['activate'];
-    $stmt = $conn->prepare("UPDATE location SET status='active' WHERE location_id=?");
+    $stmt = $conn->prepare("UPDATE location SET status='approved' WHERE location_id=?");
     $stmt->bind_param("i", $location_id);
     if ($stmt->execute()) {
         $message = "เปิดใช้งานข้อมูลสำเร็จ";
@@ -76,7 +107,7 @@ if (isset($_GET['reactivate_sport_type'])) {
     }
     $stmt->close();
 }
-
+// ฟังก์ชันนี้ใช้ในการดึงประเภทกีฬาที่มีสถานะ active จากตาราง sport_type
 function getActiveSportTypes($conn) {
     $sql = "SELECT type_id, type_name FROM sport_type WHERE status='active'";
     return $conn->query($sql);
@@ -93,9 +124,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $selected_days = $_POST["day_selection"] ?? [];
     $days_str = implode(',', $selected_days);
 
-    $location_photo = $_FILES["location_photo"]["name"] ?? '';
-    $target_dir = "uploads/";
-    $target_file = $target_dir . basename($location_photo);
+    $location_photo = $_FILES["location_photo"]["name"] ?? ''; //$location_photo: ชื่อของไฟล์ที่ผู้ใช้เลือกอัปโหลด
+    $target_dir = "uploads/"; //$target_dir: โฟลเดอร์ปลายทางที่ไฟล์จะถูกบันทึกในเซิร์ฟเวอร์
+    $target_file = $target_dir . basename($location_photo); //$target_file: ที่อยู่เต็มของไฟล์รวมถึงโฟลเดอร์ปลายทางและชื่อไฟล์
     
     if (!empty($location_photo)) {
         if (!move_uploaded_file($_FILES["location_photo"]["tmp_name"], $target_file)) {
@@ -126,6 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Latitude or Longitude cannot be empty.";
     }
 }
+
 
 
 ?>
@@ -262,7 +294,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 15px;
             text-align: left;
         }
-        .btn {
+     .btn {
             display: inline-block;
             padding: 5px 10px;
             color: white;
@@ -340,10 +372,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     </style>
     <script>
+         //ฟังก์ชันนี้ใช้สำหรับสลับสถานะของกลุ่มเช็คบ็อกซ์ทั้งหมดในกลุ่มเดียวกัน
         function toggleCheckboxes() {
             const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
-            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked); //ตรวจสอบว่าเช็คบ็อกซ์ทั้งหมดถูกเลือก (checked) หรือไม่ ถ้าทุกเช็คบ็อกซ์ถูกเลือกจะคืนค่า true ไม่เช่นนั้นจะคืนค่า false
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked); //วนลูปผ่านเช็คบ็อกซ์ทุกตัว และสลับสถานะการเลือกเช็คบ็อกซ์ (ถ้าทุกเช็คบ็อกซ์ถูกเลือก ก็จะยกเลิกการเลือกทั้งหมด, ถ้าไม่ถูกเลือกทั้งหมด ก็จะเลือกทั้งหมด)
         }
 
         function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids) {
@@ -376,7 +410,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
         <a href="hashtag.php">ข้อมูลแฮชเเท็ก</a>
-        <a href="approve.php">อนุมัติสถานที่</a>
         <br>
         <p>ข้อมูลทั่วไป</p>
     </div>
@@ -386,10 +419,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <a href="sport_type_in_location.php">ข้อมูลสนามกีฬา</a>
         <a href="activity.php">ข้อมูลกิจกรรม</a>
         <a href="member_in_activity.php">ข้อมูลสมาชิกกิจกรรม</a>
-        
         <a href="profile.php">ข้อมูลโปรไฟล์</a>
+    </br>
+    <p>การอนุมัติ</p>
     </div>
-    
+    <div class="menu-group">
+        
+    <a href="approve.php">อนุมัติสถานที่</a>
+    </div>
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
     
 </div>
@@ -465,22 +502,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h2>รายการ</h2>
 
     <?php
-$sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.latitude, l.longitude, l.status, l.location_day, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
+$sql = "SELECT l.location_id, l.location_name, l.location_time, l.location_photo, l.latitude, l.longitude, l.status, l.location_day, l.type_id as type_ids, GROUP_CONCAT(s.type_name SEPARATOR ', ') as type_names 
 FROM location l 
 LEFT JOIN sport_type s ON FIND_IN_SET(s.type_id, l.type_id)
-WHERE l.status = 'approved'
+WHERE l.status != 'pending'
 GROUP BY l.location_id";
+
+
 
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-  echo "<table><tr><th>ชื่อ</th><th>วันและเวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>การดำเนินการ</th></tr>";
-        while($row = $result->fetch_assoc()) {
-            $latitude = htmlspecialchars($row["latitude"]);
-            $longitude = htmlspecialchars($row["longitude"]);
-            $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
+    echo "<table><tr><th>ชื่อ</th><th>วันและเวลาเปิด - ปิด</th><th>รูปภาพ</th><th>ละติจูด</th><th>ลองจิจูด</th><th>ประเภทสนามกีฬา</th><th>การดำเนินการ</th></tr>";
+    while($row = $result->fetch_assoc()) {
 
-            // Convert the stored location_day back to readable format
+        //สร้างลิงก์ไปยัง Google Maps โดยใช้ค่าละติจูดและลองจิจูดที่ดึงมาจากฐานข้อมูล
+        $latitude = htmlspecialchars($row["latitude"]);
+        $longitude = htmlspecialchars($row["longitude"]);
+        $mapsLink = "https://www.google.com/maps/place/$latitude,$longitude";
+
+
+        //แปลงรหัสวัน (0-6) ที่เก็บในฐานข้อมูลให้เป็นชื่อวันภาษาไทย (เช่น 0 แปลงเป็น อาทิตย์) แล้วรวมเข้ากับเวลาที่เปิด-ปิด
         $days = htmlspecialchars($row["location_day"]);
         $daysArray = explode(',', $days);
         $daysReadable = array_map(function($day) {
@@ -497,33 +539,33 @@ if ($result->num_rows > 0) {
         }, $daysArray);
         $daysStr = implode(', ', $daysReadable);
 
-        // Combine days and time into one string
         $dayTimeStr = $daysStr . " " . htmlspecialchars($row["location_time"]);
 
-            echo "<tr><td>".htmlspecialchars($row["location_name"])."</td> <td>".$dayTimeStr."</td><td><img src='".htmlspecialchars($row["location_photo"])."' alt='รูปภาพ' width='100'></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($latitude)."</a></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($longitude)."</a></td><td>".htmlspecialchars($row["type_names"])."</td><td>";
-    
-            // ปุ่มแก้ไขและลบยังคงเหมือนเดิม
-            echo "<button class='btn btn-edit' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\")'>แก้ไข</button>";
-            echo "<a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>";
-            
-            // เปลี่ยนปุ่มระงับเป็นเปิดใช้งานถ้าสถานะเป็น inactive
-            if (isset($row["status"]) && $row["status"] == 'inactive') {
-                echo "<a class='btn btn-reactivate' href='location.php?activate=".htmlspecialchars($row["location_id"])."'>เปิดใช้งาน</a>";
-            } else {
-                echo "<a class='btn btn-suspend' href='location.php?suspend=".htmlspecialchars($row["location_id"])."'>ระงับ</a>";
-            }
-            
-            echo "</td></tr>";
+        echo "<tr><td>".htmlspecialchars($row["location_name"])."</td> <td>".$dayTimeStr."</td><td><img src='".htmlspecialchars($row["location_photo"])."' alt='รูปภาพ' width='100'></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($latitude)."</a></td><td><a href='$mapsLink' target='_blank'>".htmlspecialchars($longitude)."</a></td><td>".htmlspecialchars($row["type_names"])."</td><td>";
+        
+        echo "<a class='btn btn-edit' href='#' onclick='editLocation(\"".htmlspecialchars($row["location_id"])."\", \"".htmlspecialchars($row["location_name"])."\", \"".htmlspecialchars($row["location_time"])."\", \"".htmlspecialchars($row["location_photo"])."\", \"".htmlspecialchars($row["latitude"])."\", \"".htmlspecialchars($row["longitude"])."\", \"".htmlspecialchars($row["type_ids"])."\", \"".htmlspecialchars($row["location_day"])."\")'>แก้ไข</a>";
+
+        echo "<a class='btn btn-delete' href='location.php?delete=".htmlspecialchars($row["location_id"])."'>ลบ</a>";
+        
+        if ($row["status"] == 'inactive') {
+            echo "<a class='btn btn-reactivate' href='location.php?activate=".htmlspecialchars($row["location_id"])."'>เปิดใช้งาน</a>";
+        } else {
+            echo "<a class='btn btn-suspend' href='location.php?suspend=".htmlspecialchars($row["location_id"])."'>ระงับ</a>";
         }
-        echo "</table>";
-    } else {
-        echo "ไม่มีข้อมูล";
+        
+        echo "</td></tr>";
     }
+    echo "</table>";
+} else {
+    echo "ไม่มีข้อมูล";
+}
+
     
     $conn->close();
     ?>
 
     <script>
+        //ฟังก์ชัน previewFile() ใช้สำหรับแสดงตัวอย่างรูปภาพที่เลือกอัปโหลด
         function previewFile() {
             const preview = document.getElementById('location_photo_preview');
             const previewContainer = document.getElementById('location_photo_preview_container');
@@ -539,7 +581,7 @@ if ($result->num_rows > 0) {
                 reader.readAsDataURL(file);
             }
         }
-
+            //ฟังก์ชัน removePhoto() ใช้สำหรับลบรูปภาพที่แสดงในตัวอย่างและรีเซ็ตการเลือกไฟล์
         function removePhoto() {
             const preview = document.getElementById('location_photo_preview');
             const previewContainer = document.getElementById('location_photo_preview_container');
@@ -552,38 +594,53 @@ if ($result->num_rows > 0) {
             // Clear the src of the image
             preview.src = '';
         }
-
+                //นี้ใช้ในการสลับสถานะการเลือกเช็คบ็อกซ์ทั้งหมดภายในกลุ่มที่มีชื่อ type_id[] โดยถ้าเช็คบ็อกซ์ทั้งหมดถูกเลือกอยู่แล้ว จะทำการยกเลิกการเลือกทั้งหมด แต่ถ้ามีเช็คบ็อกซ์บางอันหรือทั้งหมดไม่ถูกเลือก จะทำการเลือกเช็คบ็อกซ์ทั้งหมด.
         function toggleCheckboxes() {
-        const checkboxes = document.querySelectorAll('.checkbox-group input[name="type_id[]"]');
+        const checkboxes = document.querySelectorAll('.checkbox-group input[name="type_id[]"]'); 
         const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
         checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
     }
 
     function toggleAllDays() {
-        const checkboxes = document.querySelectorAll('.checkbox-group input[name="day_selection[]"]');
-        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-        checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+        const checkboxes = document.querySelectorAll('.checkbox-group input[name="day_selection[]"]'); //เลือกเช็คบ็อกซ์ทั้งหมดที่อยู่ในกลุ่มที่มีชื่อ day_selection
+        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);  //ตรวจสอบว่าเช็คบ็อกซ์ทุกตัวถูกเลือก
+        checkboxes.forEach(checkbox => checkbox.checked = !allChecked); //สลับสถานะการเลือกของเช็คบ็อกซ์ทั้งหมด
     }
 
-    function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids) {
-        document.getElementById('location_id').value = location_id;
-        document.getElementById('location_name').value = location_name;
-        document.getElementById('location_time').value = location_time;
-        document.getElementById('latitude').value = latitude;
-        document.getElementById('longitude').value = longitude;
-        
-        const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
-        const typeIdArray = type_ids.split(','); // Convert the string to an array
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = typeIdArray.includes(checkbox.value);
-        });
-            if (location_photo) {
-                document.getElementById('location_photo_preview').src = location_photo;
-                document.getElementById('location_photo_preview_container').style.display = 'block'; // แสดงรูปที่มีอยู่ก่อน
-            } else {
-                document.getElementById('location_photo_preview_container').style.display = 'none'; // ซ่อนหากไม่มีรูปภาพ
-            }
-        }
+
+    //ฟังก์ชัน editLocation() ใช้ในการตั้งค่าฟิลด์ต่าง ๆ ในฟอร์มแก้ไขข้อมูลสถานที่ โดยจะแยกเวลาเปิด-ปิดจากสตริง, ตั้งค่าละติจูดและลองจิจูด, ตั้งค่าสถานะเช็คบ็อกซ์สำหรับประเภทสนามกีฬาและวันที่เปิดทำการ และจัดการการแสดงผลของรูปภาพที่เกี่ยวข้อง.
+    function editLocation(location_id, location_name, location_time, location_photo, latitude, longitude, type_ids, location_day) {
+    document.getElementById('location_id').value = location_id;
+    document.getElementById('location_name').value = location_name;
+
+    // แยกเวลาเปิด-ปิด
+    const [opening_time, closing_time] = location_time.split(' - ');
+    document.getElementById('opening_time').value = opening_time;
+    document.getElementById('closing_time').value = closing_time;
+
+    document.getElementById('latitude').value = latitude;
+    document.getElementById('longitude').value = longitude;
+
+    const checkboxes = document.querySelectorAll('input[name="type_id[]"]');
+    const typeIdArray = type_ids.split(','); // แปลง string ของประเภทเป็น array
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = typeIdArray.includes(checkbox.value);
+    });
+
+    const daysCheckboxes = document.querySelectorAll('input[name="day_selection[]"]');
+    const daysArray = location_day.split(','); // แปลง string ของวันเป็น array
+    daysCheckboxes.forEach(checkbox => {
+        checkbox.checked = daysArray.includes(checkbox.value);
+    });
+
+    if (location_photo) {
+        document.getElementById('location_photo_preview').src = location_photo;
+        document.getElementById('location_photo_preview_container').style.display = 'block'; // แสดงรูปที่มีอยู่ก่อน
+    } else {
+        document.getElementById('location_photo_preview_container').style.display = 'none'; // ซ่อนหากไม่มีรูปภาพ
+    }
+}
+
     </script>
 
 </div>
