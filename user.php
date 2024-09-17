@@ -370,7 +370,7 @@ if (isset($_GET['reactivate'])) {
     </div>
     
     <div class="menu-group">
-        <a href="user.php">ข้อมูลผู้ใช้งาน</a>
+        <a href="user.php">ข้อมูลสมาชิก</a>
         <a href="sport.php">ข้อมูลกีฬา</a>
         <a href="location.php">ข้อมูลสถานที่เล่นกีฬา</a>
         <a href="sport_type.php">ข้อมูลประเภทสนามกีฬา</a>
@@ -392,8 +392,12 @@ if (isset($_GET['reactivate'])) {
         
     <a href="approve.php">อนุมัติสถานที่</a>
     </div>
+
+    <div class="menu-group">
+        <a href="report.php">รายงาน</a>
+</div>
+
     <a href="index.php" class="btn-logout" onclick="return confirm('คุณแน่ใจว่าต้องการออกจากระบบหรือไม่?');">ออกจากระบบ</a>
-    
 </div>
 
 <div class="container">
